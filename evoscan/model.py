@@ -21,22 +21,22 @@ DEFAULT_MODEL_ID = "InstaDeepAI/nucleotide-transformer-500m-human-ref"
 AVAILABLE_MODELS = {
     "InstaDeepAI/nucleotide-transformer-500m-human-ref": {
         "name": "Nucleotide Transformer 500M (Human Ref)",
-        "description": "Modello genomico fondazionale addestrato sul genoma di riferimento umano GRCh38 (500M params, 6-mer MLM).",
+        "description": "Genomic foundation model trained on the human reference genome GRCh38 (500M params, 6-mer MLM).",
         "kmer_size": 6,
     },
     "InstaDeepAI/nucleotide-transformer-v2-100m-multi-species": {
         "name": "Nucleotide Transformer v2 100M (Multi-Species)",
-        "description": "Versione v2 leggera e veloce, addestrata su 850 specie (100M params, 6-mer MLM).",
+        "description": "Fast and lightweight v2 model trained across 850 species (100M params, 6-mer MLM).",
         "kmer_size": 6,
     },
     "InstaDeepAI/nucleotide-transformer-v2-500m-multi-species": {
         "name": "Nucleotide Transformer v2 500M (Multi-Species)",
-        "description": "Versione v2 bilanciata e accurata multi-specie (500M params, 6-mer MLM).",
+        "description": "Balanced and accurate multi-species v2 model (500M params, 6-mer MLM).",
         "kmer_size": 6,
     },
     "simulation-biophysics-engine": {
         "name": "⚡ EvoScan Bio-Physics Fast Engine (Offline/Zero-Download)",
-        "description": "Motore biofisico euristico basato su matrici di transizione/transversione Kimura-2P, deplezione CpG e contesti regolatori.",
+        "description": "Heuristic biophysical engine based on Kimura-2P transition/transversion penalties, CpG depletion, and regulatory contexts.",
         "kmer_size": 1,
     },
 }
@@ -93,8 +93,8 @@ class EvoScanEngine:
             return True
         except Exception as e:
             logger.warning(
-                f"Impossibile caricare il modello online {self.model_id}: {e}. "
-                f"Attivazione automatica del motore biofisico offline simulato."
+                f"Could not load online model {self.model_id}: {e}. "
+                f"Automatically activating offline heuristic biophysics engine."
             )
             self._is_simulation = True
             return False
@@ -132,10 +132,10 @@ class EvoScanEngine:
 
         if self._is_simulation or self.model is None or self.tokenizer is None:
             if progress_callback:
-                progress_callback(0.5, "Calcolo punteggi biofisici in corso...")
+                progress_callback(0.5, "Computing biophysical scores...")
             matrix = self._simulate_scores(sequence)
             if progress_callback:
-                progress_callback(1.0, "Completato.")
+                progress_callback(1.0, "Completed.")
             return matrix, {
                 "engine": "EvoScan Bio-Physics Fast Engine",
                 "mode": "heuristic-kimura-cpg",
@@ -179,7 +179,7 @@ class EvoScanEngine:
         score_matrix = np.zeros((4, length), dtype=np.float32)
 
         if progress_callback:
-            progress_callback(0.2, "Tokenizzazione della sequenza a 6-meri...")
+            progress_callback(0.2, "Tokenizing sequence into 6-mers...")
 
         inputs = self.tokenizer(formatted_seq, return_tensors="pt")
         input_ids = inputs["input_ids"].to(self.device)
@@ -188,7 +188,7 @@ class EvoScanEngine:
             attention_mask = attention_mask.to(self.device)
 
         if progress_callback:
-            progress_callback(0.5, "Inferenza del modello genomico...")
+            progress_callback(0.5, "Running genomic model inference...")
 
         with torch.no_grad():
             outputs = self.model(input_ids=input_ids, attention_mask=attention_mask)
@@ -213,7 +213,7 @@ class EvoScanEngine:
         vocab = self.tokenizer.get_vocab()
 
         if progress_callback:
-            progress_callback(0.8, "Allineamento tensori e calcolo delta log-likelihood...")
+            progress_callback(0.8, "Aligning tensors and computing delta log-likelihood...")
 
         for pos in range(length):
             chunk_idx = pos // k
@@ -250,7 +250,7 @@ class EvoScanEngine:
                     score_matrix[base_idx, pos] = -1.5
 
         if progress_callback:
-            progress_callback(1.0, "Analisi completata con successo.")
+            progress_callback(1.0, "Analysis completed successfully.")
 
         return score_matrix, {
             "engine": self.model_id,
@@ -280,7 +280,7 @@ class EvoScanEngine:
             if progress_callback:
                 prog = 0.1 + 0.85 * (chunk_idx / max(num_chunks, 1))
                 progress_callback(
-                    prog, f"Scansione MLM chunk {chunk_idx + 1}/{num_chunks}..."
+                    prog, f"Scanning MLM chunk {chunk_idx + 1}/{num_chunks}..."
                 )
 
             masked_kmers = list(kmers)
@@ -327,7 +327,7 @@ class EvoScanEngine:
                         score_matrix[base_idx, pos] = -1.5
 
         if progress_callback:
-            progress_callback(1.0, "Analisi MLM completata.")
+            progress_callback(1.0, "MLM analysis completed.")
 
         return score_matrix, {
             "engine": self.model_id,

@@ -63,21 +63,21 @@ def create_saturation_heatmap(
             is_wt = wt_base == mut_base
 
             if is_wt:
-                status = "🟢 <b>Wild-Type (Riferimento)</b>"
+                status = "🟢 <b>Wild-Type (Reference)</b>"
             elif score <= -2.0:
-                status = "🔴 <b>Altamente Distruttiva (Deleteria)</b>"
+                status = "🔴 <b>Highly Disruptive (Deleterious)</b>"
             elif score <= -0.75:
-                status = "🟠 <b>Moderatamente Deleteria</b>"
+                status = "🟠 <b>Moderately Deleterious</b>"
             elif score <= 0.2:
-                status = "⚪ <b>Tollerata / Neutra</b>"
+                status = "⚪ <b>Tolerated / Neutral</b>"
             else:
-                status = "🔵 <b>Arricchita / Favorevole</b>"
+                status = "🔵 <b>Enriched / Favorable</b>"
 
             text = (
-                f"<b>Locus:</b> Posizione {pos_num} ({wt_base})<br>"
-                f"<b>Mutazione:</b> {wt_base}{pos_num}{mut_base}<br>"
+                f"<b>Locus:</b> Position {pos_num} ({wt_base})<br>"
+                f"<b>Mutation:</b> {wt_base}{pos_num}{mut_base}<br>"
                 f"<b>ΔLLR Score:</b> {score:+.3f}<br>"
-                f"<b>Impatto:</b> {status}"
+                f"<b>Impact:</b> {status}"
             )
             row_hover.append(text)
         hover_text.append(row_hover)
@@ -157,14 +157,14 @@ def create_saturation_heatmap(
     # Configure modern aesthetic styling
     fig.update_layout(
         title=dict(
-            text="<b>Mappa di Mutagenesi a Saturazione (Deep Mutational Scanning)</b>",
+            text="<b>Saturation Mutagenesis Heatmap (Deep Mutational Scanning)</b>",
             font=dict(size=18, color="#F8FAFC", family="Inter, system-ui, sans-serif"),
             x=0.01,
             y=0.96,
         ),
         xaxis=dict(
             title=dict(
-                text="<b>Posizione e Nucleotide Wild-Type</b>",
+                text="<b>Position & Wild-Type Base</b>",
                 font=dict(size=13, color="#CBD5E1"),
             ),
             tickangle=-45 if length > 25 else 0,
@@ -174,7 +174,7 @@ def create_saturation_heatmap(
         ),
         yaxis=dict(
             title=dict(
-                text="<b>Nucleotide Mutato</b>",
+                text="<b>Mutated Nucleotide</b>",
                 font=dict(size=13, color="#CBD5E1"),
             ),
             tickfont=dict(size=13, color="#F1F5F9", family="monospace"),
@@ -232,13 +232,13 @@ def create_position_sensitivity_plot(
         go.Bar(
             x=pos_stats["Locus"],
             y=pos_stats["Max_Disruption"],
-            name="Vulnerabilità Massima (|Min ΔLLR|)",
+            name="Maximum Vulnerability (|Min ΔLLR|)",
             marker=dict(
                 color=pos_stats["Max_Disruption"],
                 colorscale="Reds",
                 showscale=False,
             ),
-            hovertemplate="<b>Locus:</b> %{x}<br><b>Vulnerabilità Max:</b> %{y:.3f}<extra></extra>",
+            hovertemplate="<b>Locus:</b> %{x}<br><b>Max Vulnerability:</b> %{y:.3f}<extra></extra>",
         )
     )
 
@@ -248,26 +248,26 @@ def create_position_sensitivity_plot(
             x=pos_stats["Locus"],
             y=np.abs(pos_stats["Mean_Score"]),
             mode="lines+markers",
-            name="Impatto Medio Deleterio",
+            name="Mean Deleterious Impact",
             line=dict(color="#38BDF8", width=2.5),
             marker=dict(size=5, color="#0284C7"),
-            hovertemplate="<b>Locus:</b> %{x}<br><b>Impatto Medio:</b> %{y:.3f}<extra></extra>",
+            hovertemplate="<b>Locus:</b> %{x}<br><b>Mean Impact:</b> %{y:.3f}<extra></extra>",
         )
     )
 
     fig.update_layout(
         title=dict(
-            text="<b>Profilo di Sensibilità Mutazionale per Posizione (Hotspot Vulnerability)</b>",
+            text="<b>Positional Mutational Vulnerability Profile (Hotspot Vulnerability)</b>",
             font=dict(size=16, color="#F8FAFC"),
         ),
         xaxis=dict(
-            title=dict(text="<b>Posizione Nucleotidica</b>", font=dict(color="#CBD5E1")),
+            title=dict(text="<b>Nucleotide Position</b>", font=dict(color="#CBD5E1")),
             tickfont=dict(size=10, color="#94A3B8"),
             tickangle=-45 if len(sequence) > 25 else 0,
             showgrid=False,
         ),
         yaxis=dict(
-            title=dict(text="<b>Grado di Vulnerabilità (|ΔLLR|)</b>", font=dict(color="#CBD5E1")),
+            title=dict(text="<b>Vulnerability Degree (|ΔLLR|)</b>", font=dict(color="#CBD5E1")),
             tickfont=dict(color="#94A3B8"),
             gridcolor="rgba(255, 255, 255, 0.1)",
         ),
@@ -300,19 +300,19 @@ def create_score_distribution_plot(tidy_df: pd.DataFrame) -> go.Figure:
         nbins=30,
         color="Effect",
         color_discrete_map={
-            "Fortemente Distruttiva / Deleteria": "#EF4444",
-            "Moderatamente Deleteria": "#F97316",
-            "Lievemente Sfavorevole": "#FBBF24",
-            "Tollerata / Neutra": "#94A3B8",
-            "Lievemente Arricchita": "#38BDF8",
-            "Fortemente Arricchita / Favorevole": "#3B82F6",
+            "Highly Disruptive / Deleterious": "#EF4444",
+            "Moderately Deleterious": "#F97316",
+            "Slightly Deleterious": "#FBBF24",
+            "Tolerated / Neutral": "#94A3B8",
+            "Slightly Enriched": "#38BDF8",
+            "Highly Enriched / Favorable": "#3B82F6",
         },
-        labels={"Delta_Score_LLR": "Punteggio ΔLLR (Log-Likelihood Ratio)"},
+        labels={"Delta_Score_LLR": "ΔLLR Score (Log-Likelihood Ratio)"},
     )
 
     fig.update_layout(
         title=dict(
-            text="<b>Distribuzione degli Score di Impatto Mutazionale</b>",
+            text="<b>Distribution of Mutational Impact Scores</b>",
             font=dict(size=16, color="#F8FAFC"),
         ),
         xaxis=dict(
@@ -321,7 +321,7 @@ def create_score_distribution_plot(tidy_df: pd.DataFrame) -> go.Figure:
             gridcolor="rgba(255, 255, 255, 0.1)",
         ),
         yaxis=dict(
-            title=dict(text="<b>Conteggio Mutazioni</b>", font=dict(color="#CBD5E1")),
+            title=dict(text="<b>Mutation Count</b>", font=dict(color="#CBD5E1")),
             tickfont=dict(color="#94A3B8"),
             gridcolor="rgba(255, 255, 255, 0.1)",
         ),
@@ -364,12 +364,12 @@ def create_substitution_matrix_plot(tidy_df: pd.DataFrame) -> go.Figure:
         text_auto=".2f",
         color_continuous_scale="RdBu_r",
         color_continuous_midpoint=0.0,
-        labels=dict(x="Nucleotide Mutato", y="Nucleotide Wild-Type", color="Media ΔLLR"),
+        labels=dict(x="Mutated Nucleotide", y="Wild-Type Nucleotide", color="Mean ΔLLR"),
     )
 
     fig.update_layout(
         title=dict(
-            text="<b>Matrice di Sostituzione Media (WT ➔ Mutante)</b>",
+            text="<b>Mean Substitution Matrix (WT ➔ Mutant)</b>",
             font=dict(size=15, color="#F8FAFC"),
         ),
         xaxis=dict(tickfont=dict(size=12, color="#CBD5E1")),

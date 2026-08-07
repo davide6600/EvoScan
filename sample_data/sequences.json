@@ -1,25 +1,25 @@
 {
   "Human TATA-Box Promoter (HBB Gene)": {
     "sequence": "GGGCGGGACGGGGGCGGGGCGGGCGCTATAAAAGGCGGAGCTTG",
-    "description": "Regione promotore del gene Beta-Globina umana (HBB) contenente il motivo canonico TATA-box (TATAAAA) e GC-boxes a monte.",
+    "description": "Human beta-globin (HBB) promoter region containing the canonical TATA-box motif (TATAAAA) and upstream GC-boxes.",
     "organism": "Homo sapiens",
     "type": "Promoter / Regulatory"
   },
   "Human TP53 Exon 5 Cancer Hotspot": {
     "sequence": "TACTCCCCTGCCCTCAACAAGATGTTTTGCCAACTGGCCAAGACCTGCCCTGTGCAGCTGTGGGTTGATTCCACACCCCCGCCCGGCACCCGCGTCCGCGCC",
-    "description": "Regione centrale dell'esone 5 del gene oncosoppressore TP53, sito di frequenti mutazioni somatiche umane (es. R175, G245).",
+    "description": "Core region of exon 5 of the TP53 tumor suppressor gene, site of frequent human somatic cancer mutations (e.g. R175, G245).",
     "organism": "Homo sapiens",
     "type": "Coding Exon"
   },
   "Human BRCA1 Splice Site Region": {
     "sequence": "AAGTGTCTTTTTAAAAAGAAAGTACTTTACTTTCAGTGCTTAGTGAG",
-    "description": "Giunzione di splicing del gene BRCA1 associato alla predisposizione genetica al carcinoma mammario ed ovarico.",
+    "description": "BRCA1 splice junction region associated with hereditary breast and ovarian cancer predisposition.",
     "organism": "Homo sapiens",
     "type": "Splice Junction"
   },
   "Synthetic Enhancer (E-Box / AP-1 Motifs)": {
     "sequence": "CACGTGTCACGTGTGACTCAGTGACTCA",
-    "description": "Sequenza sintetica regolatoria contenente tandem di motivi E-box (CACGTG) e siti di legame AP-1 (TGACTCA).",
+    "description": "Synthetic regulatory sequence containing tandem E-box motifs (CACGTG) and AP-1 binding sites (TGACTCA).",
     "organism": "Synthetic / In Vitro",
     "type": "Enhancer / Transcription Factor Binding"
   }

@@ -33,7 +33,7 @@ def test_clean_and_validate_dna_invalid_characters():
     raw = "ATGCZ123XYZ"
     seq, valid, msg, warnings = clean_and_validate_dna(raw)
     assert valid is False
-    assert "Caratteri non validi" in msg
+    assert "Invalid characters" in msg
     assert "X" in msg or "Z" in msg
 
 
@@ -95,7 +95,7 @@ def test_format_results_to_dataframe():
 
 def test_classify_mutation_effect():
     assert "Wild-Type" in classify_mutation_effect(0.0, "A", "A")
-    assert "Distruttiva" in classify_mutation_effect(-2.5, "A", "G")
-    assert "Moderatamente" in classify_mutation_effect(-1.0, "A", "G")
-    assert "Tollerata" in classify_mutation_effect(0.05, "A", "G")
-    assert "Arricchita" in classify_mutation_effect(1.5, "A", "G")
+    assert "Disruptive" in classify_mutation_effect(-2.5, "A", "G")
+    assert "Moderately" in classify_mutation_effect(-1.0, "A", "G")
+    assert "Tolerated" in classify_mutation_effect(0.05, "A", "G")
+    assert "Enriched" in classify_mutation_effect(1.5, "A", "G")

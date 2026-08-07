@@ -28,7 +28,7 @@ def clean_and_validate_dna(
         Tuple of (cleaned_sequence, is_valid, status_message, list_of_warnings).
     """
     if not raw_input or not raw_input.strip():
-        return "", False, "Inserisci una sequenza di DNA valida.", []
+        return "", False, "Please enter a valid DNA sequence.", []
 
     warnings: List[str] = []
     lines = raw_input.strip().splitlines()
@@ -39,7 +39,7 @@ def clean_and_validate_dna(
         if not stripped:
             continue
         if stripped.startswith(">"):
-            warnings.append(f"Header FASTA rilevato e rimosso: {stripped[:50]}...")
+            warnings.append(f"FASTA header detected and stripped: {stripped[:50]}...")
             continue
         # Remove numbers and whitespace (e.g. NCBI format: ' 1 atcgatcg 60 ')
         cleaned_line = re.sub(r"[\s\d_.-]+", "", stripped).upper()
@@ -48,7 +48,7 @@ def clean_and_validate_dna(
     cleaned_sequence = "".join(seq_lines)
 
     if len(cleaned_sequence) == 0:
-        return "", False, "Nessun nucleotide trovato dopo la pulizia del testo.", warnings
+        return "", False, "No nucleotide bases found after cleaning input text.", warnings
 
     valid_set = VALID_BASES_EXTENDED if allow_n else VALID_BASES
     invalid_chars = sorted(list(set(cleaned_sequence) - valid_set))
@@ -58,18 +58,18 @@ def clean_and_validate_dna(
         return (
             cleaned_sequence,
             False,
-            f"Caratteri non validi rilevati nella sequenza di DNA: {sample_invalid}. "
-            f"L'alfabeto consentito è: {', '.join(sorted(valid_set))}.",
+            f"Invalid characters detected in DNA sequence: {sample_invalid}. "
+            f"Allowed alphabet: {', '.join(sorted(valid_set))}.",
             warnings,
         )
 
     if len(cleaned_sequence) < 6:
         warnings.append(
-            "Attenzione: la sequenza è inferiore a 6 nucleotidi (1 k-mer). "
-            "I modelli genomici a 6-meri operano al meglio con sequenze di almeno 6 basi."
+            "Warning: Sequence is shorter than 6 nucleotides (1 k-mer). "
+            "Genomic 6-mer foundation models perform best with sequences of at least 6 bases."
         )
 
-    return cleaned_sequence, True, "Sequenza valida e pronta per l'analisi.", warnings
+    return cleaned_sequence, True, "Valid sequence ready for analysis.", warnings
 
 
 def parse_fasta(fasta_text: str) -> Dict[str, str]:
@@ -170,18 +170,18 @@ def classify_mutation_effect(score: float, wt_base: str, mut_base: str) -> str:
     Classifies the functional biological impact based on delta log-likelihood ratio (dLLR).
     """
     if wt_base == mut_base:
-        return "Wild-Type (Neutro)"
+        return "Wild-Type (Neutral)"
     if score <= -2.0:
-        return "Fortemente Distruttiva / Deleteria"
+        return "Highly Disruptive / Deleterious"
     if score <= -0.75:
-        return "Moderatamente Deleteria"
+        return "Moderately Deleterious"
     if score < -0.2:
-        return "Lievemente Sfavorevole"
+        return "Slightly Deleterious"
     if score <= 0.2:
-        return "Tollerata / Neutra"
+        return "Tolerated / Neutral"
     if score <= 1.0:
-        return "Lievemente Arricchita"
-    return "Fortemente Arricchita / Favorevole"
+        return "Slightly Enriched"
+    return "Highly Enriched / Favorable"
 
 
 def format_results_to_dataframe(
