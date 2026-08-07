@@ -15,9 +15,38 @@
 
 ---
 
-![EvoScan Demo Preview](demo.gif)
+![EvoScan Main Interface](assets/01_input_overview.png)
 
 </div>
+
+---
+
+## 📸 Application Gallery & Interactive Visualizations
+
+### 1. Main Dashboard & DNA Sequence Input
+*Interactive parameter controls, genomic foundation model selection, and real-time sequence quality metrics (GC%, CpG islands, purine/pyrimidine ratio).*
+
+![EvoScan Sequence Input & Dashboard](assets/01_input_overview.png)
+
+### 2. 2D Deep Mutational Scanning (DMS) Heatmap
+*Two-dimensional interactive saturation heatmap showing $\Delta\text{LLR}$ impact for all single-nucleotide variants across every locus.*
+
+![EvoScan 2D Saturation Mutagenesis Heatmap](assets/02_saturation_heatmap.png)
+
+### 3. Positional Vulnerability & Hotspot Profile
+*Identifies critical regulatory loci and hyper-sensitive positions with combined bar charts and mean deleterious trend lines.*
+
+![EvoScan Positional Vulnerability Profile](assets/03_vulnerability_profile.png)
+
+### 4. Substitution Matrix & $\Delta\text{LLR}$ Score Distribution
+*4x4 transition/transversion substitution matrix and multi-category variant effect distribution histogram.*
+
+![EvoScan Substitution Matrix and Score Distribution](assets/04_substitution_matrix.png)
+
+### 5. Interactive Variant Table & Hotspot Search
+*Searchable and filterable variant catalog with real-time classification chips, mutation lookups (e.g. `A10G`), and CSV export.*
+
+![EvoScan Interactive Variant Table](assets/05_variant_table.png)
 
 ## 📌 Biological Problem & Motivation
 
