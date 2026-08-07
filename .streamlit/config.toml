@@ -1,0 +1,8 @@
+[server]
+headless = true
+enableCORS = false
+enableXsrfProtection = false
+fileWatcherType = "poll"
+
+[client]
+showErrorDetails = true
