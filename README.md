@@ -48,6 +48,16 @@
 
 ![EvoScan Interactive Variant Table](assets/05_variant_table.png)
 
+### 6. Open Data Export & Formats (Wide & Long CSV)
+*Export complete Deep Mutational Scanning matrices in both 2D wide format ($4 \times L$) and tidy long format for downstream analysis in R/Bioconductor and Python.*
+
+![EvoScan Data Export & Formats](assets/06_export_download.png)
+
+### 7. Theoretical Foundations & Methodological Guide
+*Comprehensive in-app documentation detailing saturation mutagenesis mathematics, log-likelihood ratio interpretation, and non-overlapping 6-mer token mapping.*
+
+![EvoScan Methodological Guide](assets/07_methodology_guide.png)
+
 ## 📌 Biological Problem & Motivation
 
 **Deep Mutational Scanning (DMS)** is an experimental paradigm that systematically synthesizes and assays every single-nucleotide variant across a genomic region of interest. While indispensable for identifying pathogenic mutations, mapping transcriptional enhancers, and designing synthetic promoters, high-throughput DMS experiments are costly, labor-intensive, and sequence-length constrained.
