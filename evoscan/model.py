@@ -34,6 +34,12 @@ AVAILABLE_MODELS = {
         "description": "Balanced and accurate multi-species v2 model (500M params, 6-mer MLM).",
         "kmer_size": 6,
     },
+    "alphagenome-atlas-grpc": {
+        "name": "🧬 Google DeepMind AlphaGenome Atlas (Cloud gRPC)",
+        "description": "Precomputed dense saturation mutagenesis across GRCh38 with 18 biological modalities and AVI Phred scoring.",
+        "kmer_size": 1,
+        "is_cloud": True,
+    },
     "simulation-biophysics-engine": {
         "name": "⚡ EvoScan Bio-Physics Fast Engine (Offline/Zero-Download)",
         "description": "Heuristic biophysical engine based on Kimura-2P transition/transversion penalties, CpG depletion, and regulatory contexts.",

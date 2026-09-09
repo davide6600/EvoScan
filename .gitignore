@@ -24,8 +24,10 @@ env/
 env.bak/
 venv.bak/
 
-# Streamlit
+# Streamlit & Environment
 .streamlit/secrets.toml
+.env
+.env.*
 
 # IDE & OS
 .vscode/

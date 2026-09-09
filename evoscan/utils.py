@@ -184,8 +184,28 @@ def classify_mutation_effect(score: float, wt_base: str, mut_base: str) -> str:
     return "Highly Enriched / Favorable"
 
 
+def classify_phred_effect(score: float, wt_base: str, mut_base: str) -> str:
+    """
+    Classifies functional pathogenicity impact based on AlphaGenome AVI Phred score (-10 log10 P).
+    """
+    if wt_base == mut_base:
+        return "Wild-Type (Neutral)"
+    if score >= 30.0:
+        return "Extremely Disruptive (Top 0.1% Pathogenic)"
+    if score >= 20.0:
+        return "High Impact (Top 1% Disruptive)"
+    if score >= 10.0:
+        return "Moderate Impact (Top 10%)"
+    if score >= 5.0:
+        return "Mild Impact"
+    return "Tolerated / Neutral"
+
+
 def format_results_to_dataframe(
-    score_matrix: np.ndarray, sequence: str
+    score_matrix: np.ndarray,
+    sequence: str,
+    is_phred: bool = False,
+    metric_name: str = "Delta_Score_LLR",
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Formats the raw mutation score matrix (4 x L) into:
@@ -195,6 +215,8 @@ def format_results_to_dataframe(
     Args:
         score_matrix: Numpy array of shape (4, len(sequence)).
         sequence: The original wild-type DNA string.
+        is_phred: If True, formats classifications using Phred scales.
+        metric_name: Custom name for the primary metric column.
 
     Returns:
         Tuple of (wide_matrix_df, tidy_long_df).
@@ -219,7 +241,13 @@ def format_results_to_dataframe(
             score = float(score_matrix[base_idx, pos_idx])
             mutation_name = f"{wt_base}{pos_num}{mut_base}"
             is_wt = wt_base == mut_base
-            classification = classify_mutation_effect(score, wt_base, mut_base)
+
+            if is_phred:
+                classification = classify_phred_effect(score, wt_base, mut_base)
+                disruption = score if not is_wt else 0.0
+            else:
+                classification = classify_mutation_effect(score, wt_base, mut_base)
+                disruption = abs(score) if not is_wt else 0.0
 
             rows.append(
                 {
@@ -228,9 +256,10 @@ def format_results_to_dataframe(
                     "Mutant_Base": mut_base,
                     "Mutation": mutation_name,
                     "Delta_Score_LLR": round(score, 4),
+                    "Score": round(score, 4),
                     "Is_WildType": is_wt,
                     "Effect": classification,
-                    "Disruption_Level": abs(score) if not is_wt else 0.0,
+                    "Disruption_Level": round(disruption, 4),
                 }
             )
 
