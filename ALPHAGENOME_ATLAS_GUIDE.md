@@ -1,4 +1,4 @@
-# 🧬 Google DeepMind AlphaGenome Atlas: Guida Tecnica Completa
+# 🧬 Google DeepMind AlphaGenome Atlas: Comprehensive Technical Guide
 
 [![DeepMind AlphaGenome Atlas](https://img.shields.io/badge/Google%20DeepMind-AlphaGenome%20Atlas-4285F4?logo=google&logoColor=white)](https://deepmind.google.com/science/alphagenome/atlas)
 [![Science Skills](https://img.shields.io/badge/GitHub-science--skills%20v1.2.0-24292e?logo=github&logoColor=white)](https://github.com/google-deepmind/science-skills)
@@ -6,182 +6,139 @@
 
 ---
 
-## 1. Introduzione ed Obiettivi Scientifici
+## 1. Introduction & Scientific Objectives
 
-**AlphaGenome Atlas** è la piattaforma web e la risorsa genomica open-access rilasciata da **Google DeepMind** per la decifrazione su scala genomica dell'impatto funzionale delle varianti genetiche del DNA umano:
-🔗 **URL Piattaforma:** [https://deepmind.google.com/science/alphagenome/atlas](https://deepmind.google.com/science/alphagenome/atlas)
+**AlphaGenome Atlas** is an open-access genomic resource and web platform developed by **Google DeepMind** for genome-wide functional interpretation of human DNA genetic variants:
+🔗 **Platform URL:** [https://deepmind.google.com/science/alphagenome/atlas](https://deepmind.google.com/science/alphagenome/atlas)
 
-A differenza dei tradizionali modelli di mutazione o dei modelli di linguaggio genomico generici (come *Nucleotide Transformer* o *DNABERT*), che valutano le sequenze principalmente in base alla probabilità statistica della sequenza o alla "perplessità" evolutiva, AlphaGenome Atlas si basa su un **modello genomico unificato (*unifying genomics model*)** addestrato per prevedere direttamente le misurazioni biologiche e biochimiche di oltre **9.440 tracce sperimentali multi-omiche** a partire dalla sequenza primaria di DNA.
+Unlike traditional mutation models or generic genomic language models (such as *Nucleotide Transformer* or *DNABERT*)—which evaluate sequences primarily on statistical sequence likelihood or evolutionary perplexity—AlphaGenome Atlas is built upon a **unifying genomics foundation model** trained to directly predict the experimental measurements of over **9,440 multi-omic tracks** directly from primary DNA sequence.
 
-Con AlphaGenome Atlas, Google DeepMind ha precomputato e mappato la **saturazione mutagenica (*dense saturation mutagenesis*)** dell'intero genoma umano di riferimento (**GRCh38**), valutando **miliardi di possibili sostituzioni a singolo nucleotide (SNV)** e varianti strutturali, correlandole a 18 modalità biologiche distinte e fornendo un indice di impatto calibrato (**AlphaGenome Variant Impact - AVI**).
+With AlphaGenome Atlas, Google DeepMind precomputed **dense saturation mutagenesis** across the entire human reference genome (**GRCh38**), scoring **billions of candidate single nucleotide variants (SNVs)** and structural variants across 18 distinct biological modalities and calibrating them into a unified **AlphaGenome Variant Impact (AVI)** metric.
 
 ---
 
-## 2. Architettura Computazionale e Biologica di AlphaGenome
+## 2. Computational & Biological Architecture
 
-AlphaGenome modella la relazione tra sequenza e funzione biologica superando il classico approccio "black box" basato solo su annotazioni di patogenicità retrospettive (come ClinVar).
+AlphaGenome models the sequence-to-function mapping, moving beyond classic "black box" models trained strictly on retrospective pathogenicity annotations (such as ClinVar).
 
 ```mermaid
 flowchart TD
-    A["Sequenza Genomica di Contesto (Finestra fino a 1 Mb / 1.048.576 bp)"] --> B["AlphaGenome Foundation Backbone (Transformer & Convoluzioni Dilatate)"]
-    B --> C["Previsione Tracce Epigenomiche & Trascrittomiche (9.440 Tracce a Risoluzione Base-Pair)"]
+    A["Genomic Sequence Context (Window up to 1 Mb / 1,048,576 bp)"] --> B["AlphaGenome Foundation Backbone (Transformer & Dilated Convolutions)"]
+    B --> C["Epigenomic & Transcriptomic Predictions (9,440 Tracks at Base-Pair Resolution)"]
     
-    C --> D1["RNA-seq / CAGE / PRO-cap\n(Espressione Genica & TSS)"]
-    C --> D2["Splicing / Giunzioni\n(Splice Sites, Usage, Cryptic Junctions)"]
-    C --> D3["Accessibilità Cromatinica\n(DNase I / ATAC-seq)"]
-    C --> D4["Fattori di Trascrizione\n(ChIP-seq TF: GATA, CTCF, NF-kB, ecc.)"]
-    C --> D5["Modificazioni Istoniche\n(ChIP-seq: H3K27ac, H3K4me3, H3K27me3)"]
-    C --> D6["Organizzazione 3D Cromosomica\n(Mappe di Contatto Hi-C / Micro-C)"]
+    C --> D1["RNA-seq / CAGE / PRO-cap\n(Gene Expression & TSS)"]
+    C --> D2["Splicing / Junctions\n(Splice Sites, Usage, Cryptic Junctions)"]
+    C --> D3["Chromatin Accessibility\n(DNase I / ATAC-seq)"]
+    C --> D4["Transcription Factors\n(ChIP-seq TF: GATA, CTCF, NF-kB, etc.)"]
+    C --> D5["Histone Modifications\n(ChIP-seq: H3K27ac, H3K4me3, H3K27me3)"]
+    C --> D6["3D Genome Organization\n(Contact Maps: Hi-C / Micro-C)"]
     
     D1 & D2 & D3 & D4 & D5 & D6 --> E["AlphaGenome Variant Impact (AVI) Scorer Engine"]
-    F["Conservazione Evolutiva (Cactus 241-way, PhastCons 470-way)"] --> E
-    G["Effetto Codificante (AlphaMissense, Start/Stop Lost, Frameshift)"] --> E
+    F["Evolutionary Conservation (Cactus 241-way, PhastCons 470-way)"] --> E
+    G["Coding Consequences (AlphaMissense, Start/Stop Lost, Frameshift)"] --> E
     
-    E --> H["Score AVI Calibrato (Phred-scale 0 - 70)"]
-    E --> I["Attribuzione SHAP su 18 Modalità Biologiche"]
-    E --> J["Precomputazione Densa & gRPC Atlas Service"]
+    E --> H["Calibrated AVI Score (Phred Scale 0 - 70)"]
+    E --> I["SHAP Attribution across 18 Biological Modalities"]
+    E --> J["Dense Precomputation & Atlas gRPC Service"]
 ```
 
-### 2.1. Finestra di Contesto di 1 Megabase (1.048.576 bp)
-I modelli convenzionali di Deep Learning genomico elaborano finestre locali ridotte (es. da 512 bp a pochi kilobasi), perdendo elementi regolatori distali fondamentali:
-- **Enhancer distali** situati a centinaia di kilobasi dal promotore target.
-- **Isolatori e loop cromatinici CTCF** che definiscono i domini di associazione topologica (TAD).
-- **Splicing a lungo raggio** tra esoni distanziati da introni mastodontici.
+### 2.1. 1-Megabase Context Window (1,048,576 bp)
+Conventional deep learning models in genomics operate on narrow receptive fields (e.g. 512 bp to a few kilobases), missing critical distal regulatory elements:
+- **Distal enhancers** located hundreds of kilobases from target promoters.
+- **CTCF chromatin insulators and loops** defining topologically associating domains (TADs).
+- **Long-range alternative splicing** across massive introns.
 
-AlphaGenome elabora una finestra di contesto ultra-lunga fino a **1 Mb ($2^{20} = 1.048.576\text{ bp}$)**, catturando la complessa sintassi tridimensionale ed epigenetica del genoma umano a risoluzione di singola base.
+AlphaGenome processes an ultra-long context window of up to **1 Mb ($2^{20} = 1,048,576\text{ bp}$)**, capturing long-range 3D syntax and epigenomic regulation at single base-pair resolution.
 
 ---
 
-## 3. Le 18 Modalità Biologiche di AlphaGenome Variant Impact (AVI)
+## 3. The 18 Biological Modalities of AlphaGenome Variant Impact (AVI)
 
-Il framework **AVI** sintetizza l'impatto genomico su **18 categorie funzionali** tracciabili, garantendo la decostruzione causale della mutazione:
+The **AVI** framework decomposes variant impact into **18 interpretable functional categories**:
 
-| N° | Chiave Modale (`modality_key`) | Nome Visualizzato nell'Atlas | Categoria Biologica | Descrizione del Meccanismo Biologico |
+| # | Modality Key (`modality_key`) | Atlas Display Label | Biological Category | Description & Biological Mechanism |
 |:--:|:---|:---|:---|:---|
-| **1** | `MERGED_SPLICING` | **Splicing** | Splicing | Alterazione di donatori/accettori di splicing, efficienza d'uso del sito e comparsa di giunzioni criptiche o pseudo-esoni. |
-| **2** | `MAX_ABS_RNA_SEQ` | **RNA-seq** | Trascrizione | Alterazione quantitativa dell'abbondanza di trascritto (log2 fold change di espressione). |
-| **3** | `MAX_ABS_ATAC` | **ATAC-seq** | Accessibilità Cromatinica | Guadagno o perdita di accessibilità della cromatina misurata tramite transposasi. |
-| **4** | `MAX_ABS_DNASE` | **DNASE-seq** | Accessibilità Cromatinica | Disruzione di siti ipersensibili alla DNasi I (DHS) nei promotori ed enhancer. |
-| **5** | `MAX_ABS_CHIP_TF` | **ChIP-TF** | Binding Fattori Trascrizionali | Creazione o distruzione di motivi di legame per centinaia di TF (es. GATA, CEBP, CTCF, HNF1, AP-1). |
-| **6** | `MAX_ABS_CHIP_HISTONE` | **ChIP-Histone** | Epigenetica / Istoni | Alterazione di modificazioni post-traduzionali istoniche (es. H3K27ac per enhancer attivi, H3K4me3 per promotori). |
-| **7** | `MAX_ABS_CAGE` | **CAGE** | Trascrizione / TSS | Spostamento o soppressione del sito d'inizio della trascrizione (Cap Analysis Gene Expression). |
-| **8** | `MAX_ABS_PROCAP` | **PRO-cap** | Trascrizione / TSS | Disruzione dell'inizio precoce della trascrizione della RNA polimerasi. |
-| **9** | `MAX_ABS_POLYADENYLATION`| **Polyadenylation** | Trascrizione / 3' UTR | Alterazione dei segnali canonici di poliadenilazione (AATAAA/ATTAAA) al 3' UTR con perdita di stabilità dell'mRNA. |
-| **10**| `MAX_ABS_CONTACT_MAPS` | **3D Genome Contacts** | Organizzazione 3D | Riorganizzazione dei contatti genomici e dei loop cromatinici a lunga distanza. |
-| **11**| `ALPHAMISSENSE` | **AlphaMissense** | Impatto Proteico | Predizione dell'effetto patogenetico sulle sostituzioni aminoacidiche codificanti. |
-| **12**| `CACTUS_241_WAY` | **Cactus** | Conservazione Evolutiva | Conservazione filogenetica multi-specie allineata su 241 genomi di mammiferi. |
-| **13**| `PROTEIN_TERMINATION` | **Protein Termination**| Conseguenza Codificante | Creazione di codoni di stop prematuri (mutazioni non-senso) o disruzione del frame. |
-| **14**| `START_LOST` | **Start Lost** | Conseguenza Codificante | Perdita del codone canonico d'inizio metionina (ATG). |
-| **15**| `STOP_LOST` | **Stop Lost** | Conseguenza Codificante | Perdita del codone di stop naturale con conseguente estensione anomala del polipeptide. |
-| **16**| `PHASTCONS_470_WAY` | **PhastCons 470** | Conservazione Evolutiva | Conservazione nucleotidica tra 470 specie di vertebrati. |
-| **17**| `IS_INSERTION` | **Insertion** | Variante Strutturale | Micro-inserzioni e duplicazioni in tandem. |
-| **18**| `IS_DELETION` | **Deletion** | Variante Strutturale | Micro-delezioni genomiche con disruzione di elementi funzionali. |
+| **1** | `MERGED_SPLICING` | **Splicing** | Splicing | Disruption of canonical splice donors/acceptors, shifts in splice site usage, and activation of cryptic junctions or pseudo-exons. |
+| **2** | `MAX_ABS_RNA_SEQ` | **RNA-seq** | Transcription | Quantitative alteration of steady-state transcript abundance (log2 fold change in expression). |
+| **3** | `MAX_ABS_ATAC` | **ATAC-seq** | Chromatin Accessibility | Gain or loss of open chromatin accessibility measured by transposase insertion. |
+| **4** | `MAX_ABS_DNASE` | **DNASE-seq** | Chromatin Accessibility | Disruption of DNase I hypersensitive sites (DHS) at active promoters and enhancers. |
+| **5** | `MAX_ABS_CHIP_TF` | **ChIP-TF** | Transcription Factor Binding | Creation or destruction of transcription factor binding motifs (e.g., GATA, CEBP, CTCF, HNF1, AP-1). |
+| **6** | `MAX_ABS_CHIP_HISTONE` | **ChIP-Histone** | Epigenetics / Histones | Remodeling of post-translational histone modifications (e.g., H3K27ac for active enhancers, H3K4me3 for promoters). |
+| **7** | `MAX_ABS_CAGE` | **CAGE** | Transcription / TSS | Shift or suppression of transcription start sites (Cap Analysis Gene Expression). |
+| **8** | `MAX_ABS_PROCAP` | **PRO-cap** | Transcription / TSS | Disruption of nascent transcription initiation by RNA polymerase. |
+| **9** | `MAX_ABS_POLYADENYLATION`| **Polyadenylation** | Transcription / 3' UTR | Alteration of canonical polyadenylation signals (AATAAA/ATTAAA) in 3' UTRs leading to mRNA instability. |
+| **10**| `MAX_ABS_CONTACT_MAPS` | **3D Genome Contacts** | 3D Organization | Rearrangement of chromatin contact maps and long-range chromosomal loops. |
+| **11**| `ALPHAMISSENSE` | **AlphaMissense** | Protein Impact | Predicted pathogenicity on missense amino acid substitutions. |
+| **12**| `CACTUS_241_WAY` | **Cactus** | Evolutionary Conservation | Multi-species phylogenetic conservation aligned across 241 mammalian genomes. |
+| **13**| `PROTEIN_TERMINATION` | **Protein Termination**| Coding Consequence | Introduction of premature stop codons (nonsense mutations) or frameshifts. |
+| **14**| `START_LOST` | **Start Lost** | Coding Consequence | Loss of canonical initiator methionine codon (ATG). |
+| **15**| `STOP_LOST` | **Stop Lost** | Coding Consequence | Loss of natural termination codon causing polypeptide extension. |
+| **16**| `PHASTCONS_470_WAY` | **PhastCons 470** | Evolutionary Conservation | Nucleotide sequence conservation across 470 vertebrate species. |
+| **17**| `IS_INSERTION` | **Insertion** | Structural Variant | Small insertions and tandem duplications. |
+| **18**| `IS_DELETION` | **Deletion** | Structural Variant | Genomic micro-deletions disrupting functional elements. |
 
 ---
 
-## 4. Metriche di Punteggio e Calibrazione Statistica (AVI Phred)
+## 4. Scoring Metrics & Statistical Calibration (AVI Phred)
 
-AlphaGenome Atlas adotta una scala calibrata uniforme per tutte le varianti:
+AlphaGenome Atlas standardizes predictions onto a calibrated, genome-wide scale:
 
-### 4.1. Calibrazione Phred-Scale
-Dato il quantile di coda calcolato sul background di tutte le varianti possibili del genoma umano:
+### 4.1. Phred-Scale Calibration
+Given the tail quantile evaluated against the empirical background of all possible human SNVs:
 $$\text{Tail Quantile} = 1.0 - \text{CDF}(\text{score})$$
 $$\text{AVI Phred} = -10 \cdot \log_{10}(\text{Tail Quantile})$$
 
-| Punteggio AVI Phred | Percentile Genoma Umano | Interpretazione dell'Impatto Molecolare |
+| AVI Phred Score | Human Genome Percentile | Molecular Impact Tier |
 |:---:|:---:|:---|
-| **$\ge 40.0$** | **Top 0.01%** (1 variante su 10.000) | Impatto molecolare estremo (disruzione di promotori core, siti donatori/accettori di splicing canonici, stop gain critici). |
-| **$\ge 30.0$** | **Top 0.10%** (1 variante su 1.000) | Impatto molecolare severo (perdita di binding TF cruciali in enhancer chiave, splicing deregolato). |
-| **$\ge 20.0$** | **Top 1.00%** (1 variante su 100) | Impatto funzionale significativo / moderato. |
-| **$\ge 15.0$** | **Top 3.16%** | Variazione regolatoria degna di nota. |
-| **$\ge 10.0$** | **Top 10.0%** | Effetto borderline o debolmente penetrante. |
-| **$< 10.0$** | **Bottom 90%** | Variante verosimilmente neutrale o non funzionale. |
+| **$\ge 40.0$** | **Top 0.01%** (1 in 10,000 variants) | Extreme molecular disruption (core promoter collapse, canonical splice junction loss, critical nonsense stop). |
+| **$\ge 30.0$** | **Top 0.10%** (1 in 1,000 variants) | Severe disruption (loss of essential TF binding at key enhancers, aberrant splicing). |
+| **$\ge 20.0$** | **Top 1.00%** (1 in 100 variants) | High / moderate functional impact. |
+| **$\ge 15.0$** | **Top 3.16%** | Notable regulatory alteration. |
+| **$\ge 10.0$** | **Top 10.0%** | Moderate or weakly penetrant regulatory effect. |
+| **$< 10.0$** | **Bottom 90%** | Evolutionarily tolerated or benign variant. |
 
-### 4.2. Punteggio Grezzo vs. Quantile
-- **Raw Score (`avi_raw`):** Dimensione fisica dell'effetto predetto nella specifica modalità (es. in RNA-seq corrisponde approssimativamente al $\log_2(\text{fold change})$: $-1.0 \approx 50\%$ di riduzione, $-4.0 \approx 16\times$ riduzione).
-- **Quantile Score (`avi_quantile`):** Rango relativo normalizzato rispetto alla distribuzione delle varianti genomiche di background.
-- **Top Feature Importance:** Peso d'attribuzione SHAP che indica quale delle 18 modalità ha guidato lo score primario.
+### 4.2. Raw Score vs. Quantile
+- **Raw Score (`avi_raw`):** Physical magnitude in the specific modality (e.g., in RNA-seq it corresponds roughly to $\log_2(\text{fold change})$: $-1.0 \approx 50\%$ reduction, $-4.0 \approx 16\times$ reduction).
+- **Quantile Score (`avi_quantile`):** Relative normalized rank against genome-wide background variants.
+- **Top Feature Importance:** SHAP attribution weights highlighting which of the 18 modalities drove the composite impact score.
 
 ---
 
-## 5. Ecosistema Dati e Strumenti di Accesso
+## 5. Data Ecosystem & Access Channels
 
-Google DeepMind fornisce l'accesso ad AlphaGenome Atlas attraverso 4 canali complementari:
+Google DeepMind provides access to AlphaGenome Atlas through 4 complementary channels:
 
-### 5.1. Esploratore Web Interattivo (Web UI)
-Consente di inserire:
-- Coordinate genomiche (es. `chr11:5288500-5290500`)
-- Simboli genici (es. `HBB`, `BRCA1`, `TP53`)
-- Singole varianti (es. `chr9:128226027:G>A`)
+### 5.1. Interactive Web Explorer (Web UI)
+Enables searching by:
+- Genomic coordinates (e.g. `chr11:5288500-5290500`)
+- Gene symbols (e.g. `HBB`, `BRCA1`, `TP53`)
+- Individual variants (e.g. `chr9:128226027:G>A`)
 
-La Web UI renderizza:
-1. **Heatmap regolatorie 2D:** Visualizzazione dinamica Ref vs Alt.
-2. **Archi Sashimi per lo Splicing:** Mostra la formazione di giunzioni canoniche vs giunzioni aberranti / exon skipping con lo score di abbondanza relativo.
-3. **Motif Footprinting & CWM (Contribution Weight Matrices):** Visualizzazione dei loghi nucleotidici ISM attivi con evidenziazione del sito di legame TF compromesso o generato *de novo*.
+The Web UI renders:
+1. **2D Regulatory Heatmaps:** Ref vs. Alt comparative overlays.
+2. **Sashimi Plots for Splicing:** Visualizes canonical junctions vs. aberrant exon skipping with junction read shares.
+3. **Motif Footprinting & CWMs:** In silico mutagenesis (ISM) logos highlighting TF binding disruption or de novo creation.
 
-### 5.2. Download Massivo di Dataset Tabix (Bulk Artifacts)
-Per l'analisi locale ad alto throughput, DeepMind mette a disposizione archivi Tabix precomputati:
+### 5.2. Bulk Tabix Datasets
+For high-throughput local pipelines, DeepMind provides precomputed Tabix archives:
+1. **AVI SNV Scores & Phred Scores (`avi_scores_snvs_tabix.zip`)** (88.5 GB, Permissive License)
+2. **AlphaGenome SNV Merged Splicing Scores (`combined_splicing_snvs_tabix.zip`)** (20.6 GB, Non-Commercial)
+3. **AVI SNV Feature Importance Scores (`avi_feature_importances_snvs_tabix.zip`)** (283.9 GB, Non-Commercial)
 
-1. **AVI SNV Scores & Phred Scores (`avi_scores_snvs_tabix.zip`)**
-   - **Dimensione:** 88.5 GB
-   - **Licenza:** Permissiva (uso commerciale e non commerciale)
-   - **Contenuto:** Punteggi AVI grezzi, quantili e Phred per tutti i possibili SNV del genoma umano.
-2. **AlphaGenome SNV Merged Splicing Scores (`combined_splicing_snvs_tabix.zip`)**
-   - **Dimensione:** 20.6 GB
-   - **Licenza:** Solo per uso non commerciale
-   - **Contenuto:** Punteggi di disruzione dello splicing combinati per tutti i loci esonici/intronici.
-3. **AVI SNV Feature Importance Scores (`avi_feature_importances_snvs_tabix.zip`)**
-   - **Dimensione:** 283.9 GB
-   - **Licenza:** Solo per uso non commerciale
-   - **Contenuto:** Vettori completi di attribuzione d'importanza SHAP per le 18 modalità.
-
-### 5.3. API gRPC e Python SDK (`alphagenome`)
-AlphaGenome espone un endpoint gRPC ad alte prestazioni (`gdmscience.googleapis.com:443`) con le seguenti funzionalità:
-- `client.query_interval()`: Restituisce istantaneamente (1.5 - 3 secondi) la matrice di saturazione mutagenica per finestre fino a 1.000 bp ($3 \times 1.000 = 3.000\text{ varianti}$).
-- `client.query_variant()`: Restituisce l'annotazione completa di una singola variante con la decomposizione delle 18 modalità.
-- `client.scorer_metadata()`: Fornisce l'ontologia UBERON/CL e l'elenco di 9.440 tracce.
+### 5.3. High-Performance gRPC API & Python SDK (`alphagenome`)
+AlphaGenome exposes a low-latency gRPC endpoint (`gdmscience.googleapis.com:443`):
+- `client.query_interval()`: Returns dense saturation mutagenesis matrices for windows up to 1,000 bp ($3 \times 1,000 = 3,000\text{ variants}$) in $1.5 - 3$ seconds.
+- `client.query_variant()`: Complete multi-modal variant report with SHAP decomposition.
+- `client.scorer_metadata()`: UBERON/CL tissue ontologies and metadata across all 9,440 tracks.
 
 ### 5.4. Google DeepMind Science Skills (v1.2.0)
-La suite open-source integrata in Antigravity e CLI include:
-- `alphagenome_variant_impact_score`: CLI unificata (`alphagenome_atlas_avi.py`) per subcomandi `query`, `annotate`, `region`, `metadata`, `gtf`.
-- `alphagenome_atlas_website_links`: Generatore automatico di deep-link specifici (`alphagenome_atlas_links.py`) per proiettare varianti locali direttamente sull'interfaccia grafica DeepMind.
+- `alphagenome_variant_impact_score`: Unified CLI (`alphagenome_atlas_avi.py`) for `query`, `annotate`, `region`, `metadata`, and `gtf`.
+- `alphagenome_atlas_website_links`: Generates deep-links (`alphagenome_atlas_links.py`) directly linking variants to the web Atlas.
 
 ---
 
-## 6. Esempio Pratico di Flusso di Lavoro (CLI / Python)
+## 6. Regulatory Notes & Scope
 
-### 6.1. Scansione di una Finestra di Saturazione Mutagenica (`region`)
-```bash
-# Esegue in 2 secondi la scansione densa di un promotore di 100 bp (300 SNV)
-uv run scripts/alphagenome_atlas_avi.py region \
-  --region chr11:5225720-5225820 \
-  --min_phred 15.0 \
-  --top_k 10 \
-  --output hbb_promoter_hotspots.tsv
-```
-
-### 6.2. Interrogazione Dettagliata con Attribuzione Multi-Omica (`query`)
-```bash
-# Interroga una variante splice donor in CAPN3
-uv run scripts/alphagenome_atlas_avi.py query "chr15:42387805:C>G" \
-  --include_track_info \
-  --format json \
-  -o capn3_variant_report.json
-```
-
-### 6.3. Generazione Deep-Link con Tracce Pinned
-```bash
-# Genera URL interattivo con visualizzazione accoppiata RNA-seq + Splicing
-uv run scripts/alphagenome_atlas_links.py track-predictions \
-  --variant "chr15:42387805:C>G" \
-  --gene CAPN3 \
-  --biosample "Muscle_Skeletal"
-```
-
----
-
-## 7. Avvertenze Regolatorie e Limiti Noti
-
-1. **Uso Esclusivamente per la Ricerca (RUO):** AlphaGenome Atlas è formalmente classificato come strumento di ricerca scientifica. È severamente vietato l'uso per diagnosi cliniche dirette o decisioni terapeutiche senza validazione ortogonale conforme ai protocolli di laboratorio accreditati (ACMG/AMP).
-2. **Dipendenza dal Genoma di Riferimento:** I modelli attuali dell'Atlas sono parametrizzati su GRCh38. Sequenze de-novo prive di coordinate genomiche non beneficiano della precomputazione densa e richiedono l'esecuzione del modello base via inferenza diretta.
-3. **Varianti Strutturali Complesse:** Sebbene SNV, piccole inserzioni e delezioni siano modellate con eccezionale accuratezza, riarrangiamenti complessi su larga scala (inversioni, traslocazioni bilanciate) necessitano di attenta interpretazione delle mappe di contatto 3D.
+1. **Research Use Only (RUO):** AlphaGenome Atlas is classified as a scientific research tool. It must not be used as the sole basis for clinical diagnosis or treatment decisions without orthogonal validation according to accredited clinical laboratory standards (ACMG/AMP).
+2. **Reference Genome Dependency:** Models are currently parameterized for GRCh38. De-novo synthetic sequences lacking coordinates require local direct inference (e.g. via Nucleotide Transformer).
+3. **Complex Structural Variants:** While SNVs, small insertions, and deletions are modeled with high accuracy, large-scale rearrangements (inversions, balanced translocations) require careful multi-megabase 3D contact map interpretation.

@@ -48,13 +48,13 @@ def test_parse_genomic_region_valid():
 
 
 def test_parse_genomic_region_invalid():
-    with pytest.raises(ValueError, match="Formato regione non valido"):
+    with pytest.raises(ValueError, match="Invalid genomic region format"):
         parse_genomic_region("invalid_region_format")
 
-    with pytest.raises(ValueError, match="non può essere minore"):
+    with pytest.raises(ValueError, match="cannot be less than start"):
         parse_genomic_region("chr11:500-400")
 
-    with pytest.raises(ValueError, match="supera il limite"):
+    with pytest.raises(ValueError, match="exceeds maximum interactive limit"):
         parse_genomic_region("chr11:1000-5000", max_window=1000)
 
 
@@ -91,9 +91,9 @@ def test_alphagenome_engine_unconfigured():
     assert not engine.configured
     valid, msg = engine.validate_connection()
     assert not valid
-    assert "non configurata" in msg
+    assert "not configured" in msg
 
-    with pytest.raises(ValueError, match="mancante"):
+    with pytest.raises(ValueError, match="Missing AlphaGenome API key"):
         engine.score_genomic_interval("chr11", 5225720, 5225730)
 
 

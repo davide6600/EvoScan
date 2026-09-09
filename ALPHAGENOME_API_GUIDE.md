@@ -1,143 +1,143 @@
-# Guida alla Configurazione della Chiave API Personale Google DeepMind AlphaGenome
+# Google DeepMind AlphaGenome Personal API Key Configuration Guide
 
 > [!IMPORTANT]
-> **Requisito Chiave API Personale:** Per interrogare i server cloud gRPC di **Google DeepMind AlphaGenome Atlas** attraverso **EvoScan**, ogni utente deve disporre di una propria chiave API personale. EvoScan non include chiavi condivise o preconfigurate nel codice di produzione.
+> **Personal API Key Requirement:** To query **Google DeepMind AlphaGenome Atlas** cloud gRPC servers through **EvoScan**, each user must supply their own personal API key. EvoScan does not include shared or preconfigured keys in production.
 
 ---
 
-## 1. Come ottenere la tua Chiave API Personale
+## 1. How to Obtain Your Personal API Key
 
-L'accesso alle API di AlphaGenome Atlas è fornito gratuitamente da Google DeepMind per scopi di **ricerca accademica e scientifica non commerciale (Research Use Only - RUO)**.
+Access to the AlphaGenome Atlas API is provided free of charge by Google DeepMind for **academic and non-commercial scientific research (Research Use Only - RUO)**.
 
-Segui questa procedura passo-passo:
+Follow these step-by-step instructions:
 
-1. **Visita il Portale API Ufficiale:**  
-   Accedi alla pagina: [**https://deepmind.google.com/science/alphagenome/api**](https://deepmind.google.com/science/alphagenome/api).
-2. **Autenticati con il tuo Account Google:**  
-   Clicca su **Sign In** utilizzando il tuo account Google o istituzionale.
-3. **Richiedi l'Accesso API (Research Use Only):**  
-   Compila il modulo indicando il tuo istituto di ricerca / università e l'ambito dello studio.
-4. **Accetta i Termini di Servizio (Terms of Service):**  
-   Prendi visione della licenza RUO (il modello e le predizioni non possono essere usati come unica base per diagnosi cliniche dirette senza conferma di laboratorio ortogonale).
-5. **Genera e Copia la tua API Key:**  
-   Verrà generata una stringa alfanumerica (del tipo `AIzaSy...`). Copiala e custodiscila in modo sicuro: non condividerla pubblicamente né committarla su repository Git pubblici.
+1. **Visit the Official API Portal:**  
+   Navigate to: [**https://deepmind.google.com/science/alphagenome/api**](https://deepmind.google.com/science/alphagenome/api).
+2. **Sign In with Your Google Account:**  
+   Click **Sign In** using your academic, institutional, or personal Google account.
+3. **Request API Access (Research Use Only):**  
+   Fill out the application form specifying your research institution/organization and intended use case.
+4. **Accept Terms of Service:**  
+   Review the RUO license (the model and its predictions are intended for research only and must not be used as the sole basis for clinical diagnosis without orthogonal laboratory validation).
+5. **Generate and Copy Your API Key:**  
+   An alphanumeric key string will be generated (starting with `AIzaSy...`). Copy it and store it securely: never share it publicly or commit it to public Git repositories.
 
 ---
 
-## 2. Modalità di Configurazione in EvoScan
+## 2. Configuration Methods in EvoScan
 
-EvoScan supporta tre modalità flessibili per caricare la tua chiave API:
+EvoScan supports three flexible methods to load your API key:
 
 ```mermaid
 flowchart TD
-    A["Avvio EvoScan"] --> B{"Chiave inserita nella Sidebar UI?"}
-    B -- "Sì (Priorità Massima)" --> C["Usa Chiave di Sessione UI"]
-    B -- "No" --> D{"Variabile d'ambiente ALPHAGENOME_API_KEY presente?"}
-    D -- "Sì" --> E["Usa Chiave da Ambiente / .env"]
-    D -- "No" --> F{"File ~/.env presente?"}
-    F -- "Sì" --> G["Usa Chiave da ~/.env"]
-    F -- "No" --> H["Modalità Non Configurato: Richiede Input"]
+    A["EvoScan Startup"] --> B{"Key entered in Sidebar UI?"}
+    B -- "Yes (Highest Priority)" --> C["Use UI Session Key"]
+    B -- "No" --> D{"ALPHAGENOME_API_KEY env var set?"}
+    D -- "Yes" --> E["Use Key from Environment / .env"]
+    D -- "No" --> F{"~/.env file present?"}
+    F -- "Yes" --> G["Use Key from ~/.env"]
+    F -- "No" --> H["Unconfigured Mode: Prompts for Input"]
 ```
 
-### Metodo A: Direttamente nell'Interfaccia Web di EvoScan (Consigliato)
-1. Avvia l'interfaccia grafica:
+### Method A: Directly in the EvoScan Web Interface (Recommended)
+1. Launch the web application:
    ```bash
    streamlit run app.py
    ```
-2. Nella barra laterale sinistra (Sidebar), seleziona la modalità:  
+2. In the left sidebar, select the engine:  
    `🧬 Google DeepMind AlphaGenome Atlas`.
-3. Incolla la tua chiave nel campo protetto:  
-   **"Chiave API Personale DeepMind"** (la chiave è mascherata con `••••••••`).
-4. EvoScan verificherà la chiave e mostrerà il badge verde: `🔑 API Key attiva (Personale / Sessione)`.
+3. Paste your key into the password field:  
+   **"Personal DeepMind API Key"** (the key is masked with `••••••••`).
+4. EvoScan verifies the key and displays the green badge: `🔑 API Key Active (Personal / Session)`.
 
 ---
 
-### Metodo B: File di Configurazione Locale `.env` (Persistente)
-Se utilizzi EvoScan regolarmente sul tuo computer o server locale e non vuoi reinserire la chiave a ogni riavvio:
+### Method B: Local `.env` Configuration File (Persistent)
+If you use EvoScan regularly on your local machine or server and prefer not to re-enter your key on every session:
 
-1. Crea o modifica il file `.env` all'interno della cartella principale del progetto:
+1. Create or edit a `.env` file in the root project directory:
    ```bash
-   # Percorso: EvoScan/.env
-   ALPHAGENOME_API_KEY=AIzaSy_INSERISCI_QUI_LA_TUA_CHIAVE_PERSONALE
+   # Path: EvoScan/.env
+   ALPHAGENOME_API_KEY=AIzaSy_YOUR_PERSONAL_API_KEY_HERE
    ```
-2. EvoScan caricherà automaticamente la chiave all'avvio.
+2. EvoScan will automatically detect and load the key on launch.
 
 > [!NOTE]
-> Il file `.env` è già incluso nel file `.gitignore` del repository per prevenire qualsiasi pubblicazione accidentale su GitHub.
+> `.env` and `.env.*` are already included in `.gitignore` to prevent any accidental commit to Git.
 
 ---
 
-### Metodo C: Variabile d'Ambiente di Sistema (Script e Pipeline CI/CD)
-Se esegui EvoScan all'interno di container Docker, pipeline automatizzate o script Python:
+### Method C: System Environment Variable (Scripts & CI/CD Pipelines)
+If you run EvoScan inside Docker containers, automated workflows, or custom Python scripts:
 
 - **Linux / macOS (Bash / Zsh):**
   ```bash
-  export ALPHAGENOME_API_KEY="la_tua_chiave_personale"
+  export ALPHAGENOME_API_KEY="your_personal_api_key"
   streamlit run app.py
   ```
 
 - **Windows (PowerShell):**
   ```powershell
-  $env:ALPHAGENOME_API_KEY="la_tua_chiave_personale"
+  $env:ALPHAGENOME_API_KEY="your_personal_api_key"
   streamlit run app.py
   ```
 
-- **Windows (Prompt dei Comandi CMD):**
+- **Windows (Command Prompt CMD):**
   ```cmd
-  set ALPHAGENOME_API_KEY=la_tua_chiave_personale
+  set ALPHAGENOME_API_KEY=your_personal_api_key
   streamlit run app.py
   ```
 
 ---
 
-## 3. Verifica della Connessione gRPC
+## 3. Verifying gRPC Connectivity
 
-Puoi verificare che la tua chiave API sia attiva e che i server DeepMind rispondano correttamente eseguendo la suite di test automatizzati:
+You can verify that your API key is active and that DeepMind's gRPC endpoints respond properly by executing the automated test suite:
 
 ```bash
 python -m pytest tests/test_alphagenome_engine.py
 ```
 
-Se la chiave è valida, vedrai:
+If the key is valid, the tests will pass:
 ```text
 tests\test_alphagenome_engine.py ........ [100%]
 ============================= 8 passed in 3.12s ==============================
 ```
 
-Oppure puoi eseguire un test rapido in Python da riga di comando:
+Or perform a rapid Python probe from your terminal:
 
 ```python
 from evoscan.alphagenome_engine import AlphaGenomeEngine
 
-engine = AlphaGenomeEngine(api_key="LA_TUA_CHIAVE")
+engine = AlphaGenomeEngine(api_key="YOUR_KEY")
 ok, msg = engine.validate_connection()
-print(f"Stato connessione: {ok} - {msg}")
+print(f"Connection Status: {ok} - {msg}")
 ```
 
 ---
 
-## 4. Limiti di Velocità (Rate Limits) e Best Practices
+## 4. Rate Limits & Best Practices
 
-- **Latenza di Rete:** Le interrogazioni dense di saturazione mutagenica a 1-bp su finestre di **50-100 bp** (fino a 400 varianti computate contemporaneamente) richiedono tipicamente **meno di 1.5 secondi** via gRPC.
-- **Finestra Genomica Massima Raccomandata:** Per garantire visualizzazioni fluide ed evitare timeout di rete, si raccomanda una finestra massima di **1,000 bp** per singola scansione interattiva.
-- **Quote Utente:** L'API per uso di ricerca consente migliaia di richieste giornaliere. In caso di superamento temporaneo delle quote, l'API restituirà un errore HTTP 429 (`RESOURCE_EXHAUSTED`). In tal caso, attendi alcuni istanti prima di inviare una nuova richiesta.
+- **Network Latency:** Dense 1-bp saturation mutagenesis queries over **50–100 bp** windows (evaluating up to 400 candidate variants simultaneously) typically execute in **under 1.5 seconds** via gRPC.
+- **Recommended Maximum Interactive Window:** To ensure responsive visualizations and avoid network timeouts, keep interactive scans under **1,000 bp**.
+- **User Quotas:** The research API provides thousands of daily queries. If you temporarily exceed request quotas, the server returns HTTP 429 (`RESOURCE_EXHAUSTED`). In that case, pause briefly before re-submitting.
 
 ---
 
-## 5. Risoluzione dei Problemi Comuni
+## 5. Troubleshooting & Error Resolution
 
-| Errore Riscontrato | Possibile Causa | Soluzione |
+| Error Message | Likely Cause | Recommended Fix |
 | :--- | :--- | :--- |
-| `UNAUTHENTICATED` / `API_KEY_INVALID` | La chiave inserita non è corretta, contiene spazi o è stata revocata. | Rigenera la chiave su [Google DeepMind](https://deepmind.google.com/science/alphagenome/api) e verifica di non aver incluso caratteri spuri. |
-| `Chiave API mancante` | Nessuna chiave è stata specificata né nella UI né nelle variabili d'ambiente. | Incolla la tua chiave nella barra laterale di EvoScan. |
-| `PERMISSION_DENIED` | La chiave non è autorizzata per l'endpoint AlphaGenome Atlas. | Verifica che la registrazione al programma AlphaGenome RUO sia stata approvata. |
-| `DEADLINE_EXCEEDED` | Timeout della connessione gRPC verso i server Google. | Verifica la tua connessione internet o riduci la dimensione della finestra genomica. |
+| `UNAUTHENTICATED` / `API_KEY_INVALID` | The key contains whitespace, typos, or has been revoked. | Re-generate your key on [Google DeepMind](https://deepmind.google.com/science/alphagenome/api) and ensure no extra spaces are copied. |
+| `Missing AlphaGenome API key` | No API key was provided via UI, `.env`, or environment variables. | Paste your key in EvoScan's left sidebar. |
+| `PERMISSION_DENIED` | The key is not authorized for the AlphaGenome Atlas endpoint. | Verify that your AlphaGenome RUO application was approved. |
+| `DEADLINE_EXCEEDED` | gRPC network connection timeout. | Check your internet connection or reduce the genomic window length. |
 
 ---
 
-## 6. Risorse e Riferimenti Utili
+## 6. Useful Links & Documentation
 
-- 🌐 [Portale Ufficiale AlphaGenome Atlas](https://deepmind.google.com/science/alphagenome/atlas)
-- 🔑 [Richiesta Chiave API Google DeepMind](https://deepmind.google.com/science/alphagenome/api)
-- 📚 [Guida Completa AlphaGenome Atlas in EvoScan](file:///c:/Users/david/Documents/Google%20Antigravity/EvoScan/ALPHAGENOME_ATLAS_GUIDE.md)
-- 🏗️ [Blueprint di Integrazione e Analisi Pro/Contro](file:///c:/Users/david/Documents/Google%20Antigravity/EvoScan/EVOSCAN_ALPHAGENOME_INTEGRATION.md)
+- 🌐 [Official AlphaGenome Atlas Web Portal](https://deepmind.google.com/science/alphagenome/atlas)
+- 🔑 [Google DeepMind AlphaGenome API Registration](https://deepmind.google.com/science/alphagenome/api)
+- 📚 [Comprehensive AlphaGenome Atlas Guide](ALPHAGENOME_ATLAS_GUIDE.md)
+- 🏗️ [EvoScan Integration Architecture & Trade-Offs](EVOSCAN_ALPHAGENOME_INTEGRATION.md)

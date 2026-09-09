@@ -142,8 +142,8 @@ def parse_genomic_region(region_str: str, max_window: int = 1000) -> Tuple[str, 
     match = re.match(r"^(?:chr)?([0-9A-Za-z]+):(\d+)-(\d+)$", cleaned, re.IGNORECASE)
     if not match:
         raise ValueError(
-            f"Formato regione non valido: '{region_str}'. "
-            "Usa il formato 'chr:inizio-fine' (es. 'chr11:5225720-5225780')."
+            f"Invalid genomic region format: '{region_str}'. "
+            "Use 'chr:start-end' (e.g. 'chr11:5225720-5225780')."
         )
 
     chrom_raw, start_str, end_str = match.groups()
@@ -152,15 +152,15 @@ def parse_genomic_region(region_str: str, max_window: int = 1000) -> Tuple[str, 
     end = int(end_str)
 
     if start <= 0 or end <= 0:
-        raise ValueError("Le coordinate genomiche devono essere numeri interi positivi (>0).")
+        raise ValueError("Genomic coordinates must be positive integers (>0).")
     if end < start:
-        raise ValueError(f"La coordinata di fine ({end}) non può essere minore di quella d'inizio ({start}).")
+        raise ValueError(f"End coordinate ({end}) cannot be less than start coordinate ({start}).")
 
     width = end - start + 1
     if width > max_window:
         raise ValueError(
-            f"Finestra genomica di {width:,} bp supera il limite interattivo consentito ({max_window:,} bp). "
-            f"Riduci l'intervallo per garantire un'elaborazione in tempo reale (<2s)."
+            f"Genomic window of {width:,} bp exceeds maximum interactive limit ({max_window:,} bp). "
+            "Reduce the interval to ensure real-time performance (<2s)."
         )
 
     return chrom, start, end
@@ -225,20 +225,20 @@ class AlphaGenomeEngine:
         Performs a lightweight probe query to verify API key and gRPC connectivity.
         """
         if not self.configured or not self.client:
-            return False, "Chiave API AlphaGenome non configurata. Inserisci la tua API key personale."
+            return False, "AlphaGenome API key not configured. Please provide your personal API key."
 
         try:
             from alphagenome.data import genome
             test_var = genome.Variant("chr11", 5225488, "A", "T")
             res = self.client.query_variant(test_var, requested_scorers=["AVI_SCORE"])
             if res and "AVI_SCORE" in res:
-                return True, "Connessione stabilita con successo ai server Google DeepMind AlphaGenome Atlas."
-            return False, "Nessun dato restituito dal server AlphaGenome."
+                return True, "Successfully connected to Google DeepMind AlphaGenome Atlas servers."
+            return False, "No data returned from AlphaGenome server."
         except Exception as e:
             err_msg = str(e)
             if "UNAUTHENTICATED" in err_msg or "API_KEY_INVALID" in err_msg:
-                return False, "Chiave API non valida o non autorizzata. Verifica la tua chiave su Google DeepMind."
-            return False, f"Errore di connessione gRPC: {err_msg}"
+                return False, "Invalid or unauthorized API key. Check your key on Google DeepMind."
+            return False, f"gRPC connection error: {err_msg}"
 
     def score_genomic_interval(
         self,
@@ -265,8 +265,8 @@ class AlphaGenomeEngine:
         """
         if not self.configured or not self.client:
             raise ValueError(
-                "Impossibile eseguire la scansione: Chiave API AlphaGenome mancante. "
-                "Configura la tua API key personale nella barra laterale."
+                "Cannot run scan: Missing AlphaGenome API key. "
+                "Configure your personal API key in the sidebar or via ALPHAGENOME_API_KEY environment variable."
             )
 
         from alphagenome.data import genome
@@ -287,14 +287,14 @@ class AlphaGenomeEngine:
         )
 
         if "AVI_SCORE" not in res:
-            raise RuntimeError("La risposta del server AlphaGenome Atlas non contiene i punteggi 'AVI_SCORE'.")
+            raise RuntimeError("AlphaGenome Atlas response does not contain 'AVI_SCORE' scores.")
 
         avi_adata = res["AVI_SCORE"]
         fi_adata = res.get("AVI_SCORE_FEATURE_IMPORTANCE")
 
         variants: List[genome.Variant] = avi_adata.obs["variant"].tolist()
         if not variants:
-            raise RuntimeError(f"Nessuna variante annotata per l'intervallo {chrom}:{start_1_based}-{end_1_based}.")
+            raise RuntimeError(f"No variants annotated for interval {chrom}:{start_1_based}-{end_1_based}.")
 
         # Reconstruct wild-type reference sequence across positions
         ref_dict: Dict[int, str] = {}
@@ -304,7 +304,7 @@ class AlphaGenomeEngine:
         # Ensure all positions are covered
         missing_positions = [pos for pos in range(start_1_based, end_1_based + 1) if pos not in ref_dict]
         if missing_positions:
-            logger.warning(f"Posizioni mancanti nell'intervallo: {missing_positions[:5]}")
+            logger.warning(f"Missing positions in interval: {missing_positions[:5]}")
 
         ref_chars = [ref_dict.get(pos, "N") for pos in range(start_1_based, end_1_based + 1)]
         ref_sequence = "".join(ref_chars)

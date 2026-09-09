@@ -1,7 +1,7 @@
 """
 EvoScan: Zero-Shot DNA Mutation Map Visualizer (Saturation Mutagenesis Heatmap)
 Dual-Engine Platform:
-1. Google DeepMind AlphaGenome Atlas (Human Genomic Loci GRCh38 via gRPC Cloud Engine).
+1. Google DeepMind AlphaGenome Atlas (Human Genomic Loci GRCh38 via Cloud gRPC Engine).
 2. Nucleotide Transformer & Genomic Foundation Models (Custom / Synthetic DNA Sequences).
 """
 
@@ -162,7 +162,7 @@ st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 @st.cache_data
 def load_sample_presets() -> Dict[str, Any]:
-    """Loads biological preset sequences from JSON for local engine."""
+    """Loads biological preset sequences from JSON for the local engine."""
     preset_path = Path(__file__).parent / "sample_data" / "sequences.json"
     if preset_path.exists():
         with open(preset_path, "r", encoding="utf-8") as f:
@@ -185,18 +185,18 @@ def math_chunks(length: int) -> int:
 def main():
     # --- Sidebar Configuration ---
     st.sidebar.markdown("## 🧬 **EvoScan Studio**")
-    st.sidebar.markdown("Piattaforma di Saturation Mutagenesis & Deep Mutational Scanning.")
+    st.sidebar.markdown("In Silico Saturation Mutagenesis & Deep Mutational Scanning Platform.")
 
     # Engine Selection
     engine_mode = st.sidebar.radio(
-        "Motore di Calcolo (Engine)",
+        "Genomic Scoring Engine",
         [
             "🧬 Google DeepMind AlphaGenome Atlas",
-            "🧪 Nucleotide Transformer & Modelli Locali",
+            "🧪 Nucleotide Transformer & Local Models",
         ],
         index=0,
-        help="Scegli se analizzare loci del genoma umano GRCh38 via Google AlphaGenome Atlas (gRPC Cloud) "
-             "oppure sequenze di DNA arbitrarie/sintetiche via Nucleotide Transformer locale.",
+        help="Choose between scoring human genomic loci (GRCh38) via Google AlphaGenome Atlas (Cloud gRPC) "
+             "or arbitrary/synthetic DNA sequences via local Nucleotide Transformer.",
     )
 
     st.sidebar.markdown("---")
@@ -205,53 +205,52 @@ def main():
     # BRANCH 1: GOOGLE DEEPMIND ALPHAGENOME ATLAS ENGINE
     # =========================================================================
     if "AlphaGenome" in engine_mode:
-        st.sidebar.markdown("### ☁️ **AlphaGenome Atlas Config**")
+        st.sidebar.markdown("### ☁️ **AlphaGenome Atlas Settings**")
 
-        # Personal API Key Input (EMPTY BY DEFAULT AS SPECIFIED BY USER)
+        # Personal API Key Input (EMPTY BY DEFAULT)
         env_key = os.environ.get("ALPHAGENOME_API_KEY", "")
-        # Only consider env_key if it is not empty
         default_sidebar_key = ""
 
         user_api_key = st.sidebar.text_input(
-            "Chiave API Personale DeepMind",
+            "Personal DeepMind API Key",
             value=default_sidebar_key,
             type="password",
-            placeholder="Incolla la tua ALPHAGENOME_API_KEY...",
-            help="Inserisci la tua chiave API personale di Google DeepMind. La chiave non viene memorizzata né condivisa.",
+            placeholder="Paste your ALPHAGENOME_API_KEY here...",
+            help="Enter your personal Google DeepMind API key. The key is never stored or shared.",
         )
 
         active_api_key = user_api_key.strip() if user_api_key.strip() else env_key.strip()
 
         if not active_api_key:
             st.sidebar.warning(
-                "⚠️ **Chiave API non configurata**\n\n"
-                "Per interrogare AlphaGenome Atlas è richiesta una chiave API personale gratuita (Research Use Only).\n\n"
-                "👉 [**Richiedi la tua API Key**](https://deepmind.google.com/science/alphagenome/api)\n\n"
-                "Consulta la guida: `ALPHAGENOME_API_GUIDE.md`"
+                "⚠️ **API Key Not Configured**\n\n"
+                "A personal API key (free for Research Use Only) is required to query AlphaGenome Atlas.\n\n"
+                "👉 [**Request your API Key**](https://deepmind.google.com/science/alphagenome/api)\n\n"
+                "See guide: `ALPHAGENOME_API_GUIDE.md`"
             )
         else:
-            st.sidebar.success("🔑 **API Key attiva** (Personale / Sessione)")
+            st.sidebar.success("🔑 **API Key Active** (Personal / Session)")
 
         # Modality Selection
-        st.sidebar.markdown("### 🎛️ **Livello Funzionale (Modalità)**")
+        st.sidebar.markdown("### 🎛️ **Functional Modality Layer**")
         modality_keys = list(MODALITY_OPTIONS.keys())
         modality_labels = [MODALITY_OPTIONS[k]["name"] for k in modality_keys]
 
         selected_mod_idx = st.sidebar.selectbox(
-            "Layer di Scoring Funzionale",
+            "Scoring Layer",
             range(len(modality_keys)),
             format_func=lambda i: modality_labels[i],
             index=0,
-            help="Seleziona la metrica biologica o epigenomica da calcolare per ciascuna mutazione.",
+            help="Select the biological or epigenomic metric to score for each candidate mutation.",
         )
         selected_modality = modality_keys[selected_mod_idx]
         st.sidebar.caption(f"ℹ️ {MODALITY_OPTIONS[selected_modality]['description']}")
 
         # Genomic Preset Selection
-        st.sidebar.markdown("### 📚 **Loci Clinici e Biologici Predefiniti**")
-        preset_names = list(GENOMIC_PRESETS.keys()) + ["-- Inserimento Manuale Coordinate --"]
+        st.sidebar.markdown("### 📚 **Predefined Clinical & Biological Loci**")
+        preset_names = list(GENOMIC_PRESETS.keys()) + ["-- Custom Genomic Coordinates --"]
         selected_preset_name = st.sidebar.selectbox(
-            "Scegli Locus Clinico GRCh38",
+            "Select GRCh38 Clinical Locus",
             preset_names,
             index=0,
         )
@@ -265,18 +264,18 @@ def main():
             preset_info = None
 
         st.sidebar.markdown("---")
-        st.sidebar.markdown("### 🎨 **Visualizzazione**")
+        st.sidebar.markdown("### 🎨 **Visualization Settings**")
         selected_colorscale = st.sidebar.selectbox(
-            "Palette Colori Heatmap",
+            "Heatmap Color Palette",
             list(COLORSCALES.keys()),
             index=5,  # Default to YlOrRd for Phred
         )
         actual_colorscale = COLORSCALES[selected_colorscale]
 
         show_overlay_values = st.sidebar.checkbox(
-            "Mostra valori numerici nelle celle",
+            "Overlay numeric scores on cells",
             value=False,
-            help="Sovrappone i punteggi Phred o dLLR direttamente in ogni cella della heatmap.",
+            help="Displays numeric Phred or ΔLLR values directly inside each heatmap cell.",
         )
 
         st.sidebar.markdown("---")
@@ -297,8 +296,8 @@ def main():
             st.markdown("<div class='hero-title'>🧬 EvoScan × AlphaGenome Atlas</div>", unsafe_allow_html=True)
             st.markdown(
                 "<div class='hero-subtitle'>"
-                "Saturazione mutagenica zero-shot ad altissima risoluzione su loci umani GRCh38, "
-                "alimentata dal Foundation Model genomico da 1-Mb e 9,440 tracce di Google DeepMind."
+                "High-resolution zero-shot saturation mutagenesis across human GRCh38 loci, "
+                "powered by Google DeepMind's 1-Mb context, 9,440-track foundation model."
                 "</div>",
                 unsafe_allow_html=True,
             )
@@ -315,19 +314,19 @@ def main():
             )
 
         # Region Input and Locus Viewer
-        st.markdown("### 1. Selezione del Locus Genomico (GRCh38)")
+        st.markdown("### 1. Genomic Locus Selection (GRCh38)")
 
         col_reg1, col_reg2 = st.columns([0.7, 0.3])
         with col_reg1:
             region_str = st.text_input(
-                "Coordinate Genomiche (formato chr:inizio-fine):",
+                "Genomic Coordinates (format chr:start-end):",
                 value=default_region,
-                placeholder="es. chr11:5225720-5225780 o chr17:7676080-7676150",
-                help="Inserisci le coordinate 1-based sul genoma di riferimento GRCh38 (finestra max raccomandata 1000 bp).",
+                placeholder="e.g. chr11:5225720-5225780 or chr17:7676080-7676150",
+                help="Enter 1-based coordinates on the GRCh38 reference genome (recommended max window: 1,000 bp).",
             )
             if preset_info:
                 st.info(
-                    f"🧬 **Gene:** `{preset_info['gene']}` | **Regione:** `{preset_info['region']}`\n\n"
+                    f"🧬 **Gene:** `{preset_info['gene']}` | **Region:** `{preset_info['region']}`\n\n"
                     f"💡 {preset_info['description']}",
                     icon="ℹ️",
                 )
@@ -339,9 +338,9 @@ def main():
                 locus_link = f"https://deepmind.google.com/science/alphagenome/atlas?q={p_chrom}%3A{p_start}-{p_end}&m=locus"
                 st.markdown("<br>", unsafe_allow_html=True)
                 st.link_button(
-                    "🔗 Esplora nel DeepMind Atlas",
+                    "🔗 Explore in DeepMind Atlas",
                     url=locus_link,
-                    help="Apre il visualizzatore ufficiale di Google DeepMind per questo intervallo genomico.",
+                    help="Opens the official Google DeepMind viewer for this genomic interval.",
                     use_container_width=True,
                 )
             except Exception:
@@ -355,7 +354,7 @@ def main():
             region_valid = True
             width = end - start + 1
         except Exception as e:
-            st.error(f"Errore nelle coordinate: {str(e)}")
+            st.error(f"Coordinate error: {str(e)}")
             width = 0
 
         # Status cards for region
@@ -365,9 +364,9 @@ def main():
                 st.markdown(
                     f"""
                     <div class='metric-card'>
-                        <div class='metric-label'>Cromosoma</div>
+                        <div class='metric-label'>Chromosome</div>
                         <div class='metric-value'>{chrom}</div>
-                        <div class='metric-sub'>Genoma GRCh38</div>
+                        <div class='metric-sub'>GRCh38 Reference</div>
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -376,9 +375,9 @@ def main():
                 st.markdown(
                     f"""
                     <div class='metric-card'>
-                        <div class='metric-label'>Lunghezza Intervallo</div>
+                        <div class='metric-label'>Interval Length</div>
                         <div class='metric-value'>{width:,} bp</div>
-                        <div class='metric-sub'>Finestra analizzata</div>
+                        <div class='metric-sub'>Analyzed Window</div>
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -387,9 +386,9 @@ def main():
                 st.markdown(
                     f"""
                     <div class='metric-card'>
-                        <div class='metric-label'>Varianti SNV Totali</div>
+                        <div class='metric-label'>Total SNVs Scored</div>
                         <div class='metric-value'>{width * 3:,}</div>
-                        <div class='metric-sub'>3 mutazioni per base</div>
+                        <div class='metric-sub'>3 substitutions per base</div>
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -398,7 +397,7 @@ def main():
                 st.markdown(
                     f"""
                     <div class='metric-card'>
-                        <div class='metric-label'>Layer Attivo</div>
+                        <div class='metric-label'>Active Layer</div>
                         <div class='metric-value' style='font-size:1.1rem;'>{selected_modality}</div>
                         <div class='metric-sub'>{MODALITY_OPTIONS[selected_modality]['category']}</div>
                     </div>
@@ -412,7 +411,7 @@ def main():
         run_ag_col1, run_ag_col2 = st.columns([0.35, 0.65])
         with run_ag_col1:
             run_ag = st.button(
-                "🚀 Esegui Scansione AlphaGenome Atlas (gRPC Cloud)",
+                "🚀 Run AlphaGenome Atlas Scan (Cloud gRPC)",
                 type="primary",
                 use_container_width=True,
                 disabled=not region_valid,
@@ -421,16 +420,16 @@ def main():
         # API Key warning block if user tries to run without key
         if run_ag and not active_api_key:
             st.error(
-                "❌ **Chiave API mancante:** Per interrogare i server cloud di Google DeepMind AlphaGenome Atlas, "
-                "è necessario inserire la propria chiave API personale nella barra laterale sinistra.\n\n"
-                "👉 [**Clicca qui per registrarti e generare la tua API Key personale**](https://deepmind.google.com/science/alphagenome/api)\n\n"
-                "La chiave è gratuita per ricerca scientifica non-commerciale (RUO)."
+                "❌ **Missing API Key:** To query Google DeepMind AlphaGenome Atlas cloud servers, "
+                "please enter your personal API key in the left sidebar.\n\n"
+                "👉 [**Click here to register and generate your personal API Key**](https://deepmind.google.com/science/alphagenome/api)\n\n"
+                "The key is free for non-commercial academic research (RUO)."
             )
             return
 
         # Execution logic
         if run_ag and region_valid and active_api_key:
-            with st.spinner("Connessione al cluster gRPC Google DeepMind AlphaGenome Atlas in corso..."):
+            with st.spinner("Connecting to Google DeepMind AlphaGenome Atlas gRPC cluster..."):
                 t0 = time.time()
                 try:
                     engine = AlphaGenomeEngine(api_key=active_api_key)
@@ -466,17 +465,16 @@ def main():
                         "modality": selected_modality,
                     }
                     st.success(
-                        f"✅ AlphaGenome Atlas ha elaborato {meta['variants_count']:,} varianti "
-                        f"in **{elapsed:.2f} s** via gRPC! Punteggio massimo Phred: **{meta['max_phred']:.2f}**."
+                        f"✅ AlphaGenome Atlas processed {meta['variants_count']:,} variants "
+                        f"in **{elapsed:.2f} s** via gRPC! Peak Phred score: **{meta['max_phred']:.2f}**."
                     )
                 except Exception as e:
-                    st.error(f"Errore durante l'interrogazione di AlphaGenome Atlas: {str(e)}")
+                    st.error(f"Error querying AlphaGenome Atlas: {str(e)}")
                     return
 
         # Display AlphaGenome Results
         if "alphagenome_results" in st.session_state:
             res = st.session_state["alphagenome_results"]
-            # Ensure matches current region
             if res["chrom"] == chrom and res["start"] == start and res["end"] == end:
                 wide_df = res["wide_df"]
                 tidy_df = res["tidy_df"]
@@ -485,24 +483,24 @@ def main():
                 metric_name = "AVI Phred Score (-10 log10 P)" if is_phred else f"{res['modality']} Impact"
 
                 st.markdown("---")
-                st.markdown("### 2. Risultati Interattivi & Mappa di Saturazione Epigenomica")
+                st.markdown("### 2. Interactive Results & Deep Mutational Scanning Heatmap")
 
                 tab_heat, tab_prof, tab_dist, tab_table, tab_export, tab_guide = st.tabs(
                     [
                         "📊 Saturation Heatmap",
                         "📈 Positional Vulnerability Profile",
                         "🔄 Substitution Matrix & Distribution",
-                        "📋 Tabella Varianti & Deep Links",
+                        "📋 Variant Catalog & Deep-Links",
                         "📥 Data Export & Download",
-                        "📖 Guida Metodologica & API Key",
+                        "📖 Methodological Guide & API Key",
                     ]
                 )
 
                 with tab_heat:
                     st.markdown(
-                        f"Heatmap 2D di saturazione mutagenica per **{chrom}:{start}-{end}** ({len(ref_seq)} bp). "
-                        f"Visualizza: **{MODALITY_OPTIONS[res['modality']]['name']}**. "
-                        "I marcatori bianchi indicano la sequenza di riferimento wild-type."
+                        f"2D Saturation Mutagenesis Heatmap for **{chrom}:{start}-{end}** ({len(ref_seq)} bp). "
+                        f"Displaying: **{MODALITY_OPTIONS[res['modality']]['name']}**. "
+                        "White markers denote the wild-type reference sequence."
                     )
                     fig_heat = create_saturation_heatmap(
                         wide_df=wide_df,
@@ -517,18 +515,18 @@ def main():
                     st.plotly_chart(fig_heat, use_container_width=True)
 
                     st.caption(
-                        "💡 **Guida all'interpretazione Phred (0-70):** "
-                        "0 = Wild-type/Neutro; "
-                        "5-10 = Impatto Lieve; "
-                        "10-20 = Impatto Moderato (Top 10%); "
-                        "20-30 = Alto Impatto (Top 1%); "
-                        "≥30 = Estremamente Deleterio (Top 0.1% patogenetico genome-wide)."
+                        "💡 **Phred Interpretation Guide (0–70):** "
+                        "0 = Wild-type / Neutral; "
+                        "5–10 = Mild Impact; "
+                        "10–20 = Moderate Impact (Top 10%); "
+                        "20–30 = High Impact (Top 1%); "
+                        "≥30 = Extremely Disruptive (Top 0.1% genome-wide pathogenic tier)."
                     )
 
                 with tab_prof:
                     st.markdown(
-                        "Questo grafico identifica gli **hotspot regolatori iper-vulnerabili**: "
-                        "posizioni dove le sostituzioni nucleotidiche causano il massimo sconvolgimento dell'output del modello."
+                        "This plot identifies **hyper-vulnerable regulatory hotspots**: "
+                        "loci where nucleotide substitutions cause maximal disruption to the model's prediction."
                     )
                     fig_prof = create_position_sensitivity_plot(
                         tidy_df=tidy_df,
@@ -538,7 +536,6 @@ def main():
                     )
                     st.plotly_chart(fig_prof, use_container_width=True)
 
-                    # Highlight Top 3 Most Sensitive Positions
                     if not tidy_df.empty:
                         score_col = "avi_phred" if is_phred else "score"
                         top_vulnerable = (
@@ -553,14 +550,14 @@ def main():
                             .head(3)
                         )
 
-                        st.markdown("#### 🚨 Top 3 Hotspot Iper-Vulnerabili del Locus:")
+                        st.markdown("#### 🚨 Top 3 Hyper-Vulnerable Hotspots:")
                         cols_top = st.columns(3)
                         for idx, (lpos, row) in enumerate(top_vulnerable.iterrows()):
                             with cols_top[idx]:
                                 st.markdown(
                                     f"""
                                     <div class='metric-card' style='border-color: rgba(239, 68, 68, 0.4);'>
-                                        <div class='metric-label' style='color:#EF4444;'>Posizione {lpos} ({row['WT']}) • {chrom}:{row['Genomic_Pos']}</div>
+                                        <div class='metric-label' style='color:#EF4444;'>Position {lpos} ({row['WT']}) • {chrom}:{row['Genomic_Pos']}</div>
                                         <div class='metric-value'>{row['Max_Score']:.2f}</div>
                                         <div class='metric-sub'>Peak {metric_name} | {row['Top_Mod']}</div>
                                     </div>
@@ -578,13 +575,13 @@ def main():
                         st.plotly_chart(fig_sub, use_container_width=True)
 
                 with tab_table:
-                    st.markdown("#### 📋 Esploratore Varianti con Deep-Link all'AlphaGenome Atlas")
-                    st.caption("Ogni variante può essere esplorata direttamente nel visualizzatore interattivo multi-omico di Google DeepMind con un clic.")
+                    st.markdown("#### 📋 Variant Catalog with Deep-Links to DeepMind Atlas")
+                    st.caption("Each variant can be directly explored inside Google DeepMind's multi-omic interactive viewer with one click.")
 
                     col_f1, col_f2 = st.columns([0.4, 0.6])
                     with col_f1:
                         min_phred = st.slider(
-                            "Filtra per Punteggio Phred Minimo:",
+                            "Filter by Minimum Phred Score:",
                             min_value=0.0,
                             max_value=float(tidy_df["avi_phred"].max()) if not tidy_df.empty else 50.0,
                             value=5.0,
@@ -592,8 +589,8 @@ def main():
                         )
                     with col_f2:
                         search_var = st.text_input(
-                            "Cerca variante o posizione (es. 'T>A' o '5225730'):",
-                            placeholder="Cerca...",
+                            "Search variant or position (e.g. 'T>A' or '5225730'):",
+                            placeholder="Search...",
                         )
 
                     display_table = tidy_df.copy()
@@ -606,25 +603,24 @@ def main():
                             | display_table["mutation"].str.contains(search_var, case=False)
                         ]
 
-                    # Interactive Streamlit dataframe with clickable Atlas Link column
                     st.dataframe(
                         display_table,
                         column_config={
                             "atlas_url": st.column_config.LinkColumn(
                                 "AlphaGenome Atlas",
-                                display_text="🔗 Esplora nell'Atlas",
-                                help="Apre la pagina ufficiale della variante sul portale AlphaGenome Atlas",
+                                display_text="🔗 Explore in Atlas",
+                                help="Opens the official AlphaGenome Atlas variant page on DeepMind's web portal",
                             ),
                             "avi_phred": st.column_config.NumberColumn(
                                 "AVI Phred",
                                 format="%.2f",
                             ),
                             "score": st.column_config.NumberColumn(
-                                "Punteggio Modale",
+                                "Modal Score",
                                 format="%.3f",
                             ),
                             "top_percentile": st.column_config.NumberColumn(
-                                "Top % Genoma",
+                                "Genome Top %",
                                 format="%.3f%%",
                             ),
                         },
@@ -633,12 +629,12 @@ def main():
                     )
 
                 with tab_export:
-                    st.markdown("#### 📥 Esporta Risultati in Formati Standard")
+                    st.markdown("#### 📥 Export Results in Standard Bioinformatics Formats")
                     col_ex1, col_ex2 = st.columns(2)
                     with col_ex1:
                         csv_wide = wide_df.to_csv()
                         st.download_button(
-                            label="📄 Scarica Matrice 2D Heatmap (Wide CSV)",
+                            label="📄 Download 2D Heatmap Matrix (Wide CSV)",
                             data=csv_wide,
                             file_name=f"alphagenome_wide_{chrom}_{start}_{end}.csv",
                             mime="text/csv",
@@ -647,7 +643,7 @@ def main():
                     with col_ex2:
                         csv_tidy = tidy_df.to_csv(index=False)
                         st.download_button(
-                            label="📊 Scarica Dataset Tidy Completo (Long CSV)",
+                            label="📊 Download Full Tidy Dataset (Long CSV)",
                             data=csv_tidy,
                             file_name=f"alphagenome_tidy_{chrom}_{start}_{end}.csv",
                             mime="text/csv",
@@ -659,22 +655,22 @@ def main():
                         r"""
                         ### 🧬 Google DeepMind AlphaGenome Atlas & EvoScan
 
-                        #### 1. Architettura del Modello Fondazionale AlphaGenome
-                        - **Finestra di Contesto di 1 Megabase (1 Mb):** Cattura le interazioni chromatiniche a lunghissimo raggio e gli elementi cis-regolatori distali (enhancer, silencer, isolatori CTCF).
-                        - **Risoluzione a Singola Coppia di Basi (1 bp):** Prevede 9,440 tracce biologiche parallele attraverso 18 modalità funzionali (splicing, RNA-seq, DNasi I, ATAC-seq, ChIP-TF, ChIP-istoni, contatti 3D).
-                        - **Calibrazione Phred Score (0 - 70):** 
+                        #### 1. AlphaGenome Foundation Model Architecture
+                        - **1-Megabase (1 Mb) Context Window:** Captures long-range chromatin interactions and distal regulatory elements (enhancers, silencers, CTCF insulators).
+                        - **Single-Base Pair Resolution (1 bp):** Predicts across 9,440 parallel biological tracks spanning 18 functional modalities (splicing, RNA-seq, DNase I, ATAC-seq, ChIP-TF, histone marks, 3D contacts).
+                        - **Phred Score Calibration (0–70):**
                           $$\text{Phred} = -10 \log_{10}(1 - Q)$$
-                          dove $Q$ è il quantile empirico genome-wide calcolato su tutti i ~9 miliardi di possibili SNV umani.
-                          - $\ge 10$: Top 10% (impatto moderato)
-                          - $\ge 20$: Top 1% (alto impatto)
-                          - $\ge 30$: Top 0.1% (estremamente deleterio / patogeno)
+                          where $Q$ is the empirical genome-wide quantile score calculated across all ~9 billion human SNVs.
+                          - $\ge 10$: Top 10% (moderate impact)
+                          - $\ge 20$: Top 1% (high impact)
+                          - $\ge 30$: Top 0.1% (extremely disruptive / pathogenic tier)
 
-                        #### 2. Come ottenere la propria Chiave API Personale
-                        1. Visita la pagina ufficiale: [**Google DeepMind AlphaGenome API**](https://deepmind.google.com/science/alphagenome/api).
-                        2. Effettua l'accesso con il tuo account Google.
-                        3. Accetta i termini di servizio **Research Use Only (RUO)**.
-                        4. Genera la tua API Key personale e incollala nella barra laterale sinistra di EvoScan, oppure salvala in `~/.env` come `ALPHAGENOME_API_KEY=tua_chiave`.
-                        5. Consulta il file [ALPHAGENOME_API_GUIDE.md](file:///c:/Users/david/Documents/Google%20Antigravity/EvoScan/ALPHAGENOME_API_GUIDE.md) nel repository per maggiori dettagli.
+                        #### 2. How to Obtain a Personal API Key
+                        1. Visit the official portal: [**Google DeepMind AlphaGenome API**](https://deepmind.google.com/science/alphagenome/api).
+                        2. Sign in with your Google account.
+                        3. Accept the **Research Use Only (RUO)** terms of service.
+                        4. Copy your API key and paste it into EvoScan's left sidebar, or save it to `~/.env` as `ALPHAGENOME_API_KEY=your_key`.
+                        5. Consult [ALPHAGENOME_API_GUIDE.md](ALPHAGENOME_API_GUIDE.md) in this repository for full details.
                         """
                     )
 
@@ -682,58 +678,58 @@ def main():
     # BRANCH 2: NUCLEOTIDE TRANSFORMER & LOCAL HEURISTIC ENGINE
     # =========================================================================
     else:
-        st.sidebar.markdown("### 🧪 **Modello Fondazionale Locale**")
+        st.sidebar.markdown("### 🧪 **Local Foundation Model Settings**")
 
         model_choices = list(AVAILABLE_MODELS.keys())
         model_labels = [AVAILABLE_MODELS[m]["name"] for m in model_choices]
         selected_model_idx = st.sidebar.selectbox(
-            "Seleziona Modello",
+            "Select Model",
             range(len(model_choices)),
             format_func=lambda i: model_labels[i],
             index=0,
-            help="Scegli il modello Transformers da usare per il calcolo dei logit.",
+            help="Choose the Transformers model to use for logit extraction.",
         )
         selected_model_id = model_choices[selected_model_idx]
         st.sidebar.caption(f"ℹ️ {AVAILABLE_MODELS[selected_model_id]['description']}")
 
         scoring_mode = st.sidebar.radio(
-            "Modalità di Scoring",
+            "Scoring Mode",
             ["marginal", "masked"],
             format_func=lambda m: (
-                "⚡ Fast Marginal (1-Pass Rapido)"
+                "⚡ Fast Marginal (1-Pass Rapid)"
                 if m == "marginal"
-                else "🔬 Masked Marginal Scan (MLM Iterativo)"
+                else "🔬 Masked Marginal Scan (Iterative MLM)"
             ),
         )
 
         st.sidebar.markdown("---")
-        st.sidebar.markdown("### 🎨 **Visualizzazione**")
+        st.sidebar.markdown("### 🎨 **Visualization Settings**")
 
         selected_colorscale = st.sidebar.selectbox(
-            "Palette Colori Heatmap",
+            "Heatmap Color Palette",
             list(COLORSCALES.keys()),
             index=0,
         )
         actual_colorscale = COLORSCALES[selected_colorscale]
 
         show_overlay_values = st.sidebar.checkbox(
-            "Mostra valori numerici nelle celle",
+            "Overlay numeric scores on cells",
             value=False,
         )
 
         st.sidebar.markdown("---")
-        st.sidebar.markdown("### 📚 **Preset Biologici (Sequenze)**")
+        st.sidebar.markdown("### 📚 **Biological Presets (Sequences)**")
         presets = load_sample_presets()
-        preset_names = ["-- Seleziona un esempio --"] + list(presets.keys())
+        preset_names = ["-- Select an example --"] + list(presets.keys())
         selected_preset = st.sidebar.selectbox(
-            "Carica Sequenza Esempio", preset_names, index=1 if presets else 0
+            "Load Example Sequence", preset_names, index=1 if presets else 0
         )
 
         st.sidebar.markdown("---")
         import torch
 
         device_str = "🚀 CUDA (GPU)" if torch.cuda.is_available() else "💻 CPU Host"
-        st.sidebar.markdown(f"**Hardware Attivo:** `{device_str}`")
+        st.sidebar.markdown(f"**Active Hardware:** `{device_str}`")
 
         # Main Header Local Mode
         col_h1, col_h2 = st.columns([0.8, 0.2])
@@ -741,8 +737,8 @@ def main():
             st.markdown("<div class='hero-title'>🧬 EvoScan (Local Engine)</div>", unsafe_allow_html=True)
             st.markdown(
                 "<div class='hero-subtitle'>"
-                "Saturazione mutagenica zero-shot su sequenze di DNA arbitrarie e sintetiche "
-                "tramite modelli fondazionali genomici (Nucleotide Transformer)."
+                "Zero-shot saturation mutagenesis across arbitrary and synthetic DNA sequences "
+                "powered by genomic foundation models (Nucleotide Transformer)."
                 "</div>",
                 unsafe_allow_html=True,
             )
@@ -759,11 +755,11 @@ def main():
             )
 
         # Sequence Input Section
-        st.markdown("### 1. Inserimento Sequenza DNA")
+        st.markdown("### 1. DNA Sequence Input")
 
         default_seq = ""
         preset_desc = ""
-        if selected_preset != "-- Seleziona un esempio --" and selected_preset in presets:
+        if selected_preset != "-- Select an example --" and selected_preset in presets:
             default_seq = presets[selected_preset]["sequence"]
             preset_desc = (
                 f"**{selected_preset}** ({presets[selected_preset]['organism']} - "
@@ -774,17 +770,17 @@ def main():
 
         with col_in1:
             raw_seq_input = st.text_area(
-                "Inserisci sequenza di DNA (testo o formato FASTA con header '>'):",
+                "Enter DNA sequence (plain text or FASTA format with '>' header):",
                 value=default_seq,
                 height=130,
-                placeholder="es. >Promotore\nGGGCGGGACGGGGGCGGGGCGGGCGCTATAAAAGGCGGAGCTTG",
+                placeholder="e.g. >Promoter\nGGGCGGGACGGGGGCGGGGCGGGCGCTATAAAAGGCGGAGCTTG",
             )
             if preset_desc:
                 st.info(preset_desc, icon="💡")
 
         with col_in2:
             uploaded_file = st.file_uploader(
-                "Oppure carica file FASTA (.fasta, .fa, .txt):",
+                "Or upload FASTA file (.fasta, .fa, .txt):",
                 type=["fasta", "fa", "txt", "fna"],
             )
             if uploaded_file is not None:
@@ -793,7 +789,7 @@ def main():
                 if fasta_records:
                     first_key = list(fasta_records.keys())[0]
                     raw_seq_input = fasta_records[first_key]
-                    st.success(f"Caricato record FASTA: `{first_key}` ({len(raw_seq_input)} bp)")
+                    st.success(f"Loaded FASTA record: `{first_key}` ({len(raw_seq_input)} bp)")
 
         cleaned_seq, is_valid, val_msg, warnings = clean_and_validate_dna(raw_seq_input)
 
@@ -810,9 +806,9 @@ def main():
                 st.markdown(
                     f"""
                     <div class='metric-card'>
-                        <div class='metric-label'>Lunghezza Sequenza</div>
+                        <div class='metric-label'>Sequence Length</div>
                         <div class='metric-value'>{stats['length']} bp</div>
-                        <div class='metric-sub'>{math_chunks(stats['length'])} k-mer (6-mer)</div>
+                        <div class='metric-sub'>{math_chunks(stats['length'])} 6-mer tokens</div>
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -821,7 +817,7 @@ def main():
                 st.markdown(
                     f"""
                     <div class='metric-card'>
-                        <div class='metric-label'>Contenuto GC</div>
+                        <div class='metric-label'>GC Content</div>
                         <div class='metric-value'>{stats['gc_content_pct']}%</div>
                         <div class='metric-sub'>A+T: {stats['counts']['A'] + stats['counts']['T']} | G+C: {stats['counts']['G'] + stats['counts']['C']}</div>
                     </div>
@@ -832,9 +828,9 @@ def main():
                 st.markdown(
                     f"""
                     <div class='metric-card'>
-                        <div class='metric-label'>Dinucleotidi CpG</div>
-                        <div class='metric-value'>{stats['cpg_count']} siti</div>
-                        <div class='metric-sub'>Rapporto Obs/Exp: {stats['cpg_oe_ratio']}</div>
+                        <div class='metric-label'>CpG Dinucleotides</div>
+                        <div class='metric-value'>{stats['cpg_count']} sites</div>
+                        <div class='metric-sub'>Obs/Exp Ratio: {stats['cpg_oe_ratio']}</div>
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -843,7 +839,7 @@ def main():
                 st.markdown(
                     f"""
                     <div class='metric-card'>
-                        <div class='metric-label'>Rapporto Purine/Pirimidine</div>
+                        <div class='metric-label'>Purine/Pyrimidine Ratio</div>
                         <div class='metric-value'>{stats['purine_pyrimidine_ratio']}</div>
                         <div class='metric-sub'>Pu (A+G) / Py (C+T)</div>
                     </div>
@@ -856,14 +852,14 @@ def main():
         run_col1, run_col2 = st.columns([0.35, 0.65])
         with run_col1:
             run_analysis = st.button(
-                "🧬 Avvia Zero-Shot DMS (Analizza Mutazioni)",
+                "🧬 Run Zero-Shot DMS (Analyze Mutations)",
                 type="primary",
                 use_container_width=True,
                 disabled=not (cleaned_seq and is_valid),
             )
 
         if run_analysis and cleaned_seq and is_valid:
-            with st.spinner("Inizializzazione modello genomico ed estrazione logits..."):
+            with st.spinner("Initializing genomic model and extracting logits..."):
                 progress_bar = st.progress(0.0)
                 status_text = st.empty()
 
@@ -900,11 +896,11 @@ def main():
                         "model_id": selected_model_id,
                     }
                     st.success(
-                        f"✅ Deep Mutational Scanning completato in **{elapsed:.2f} s** "
-                        f"su {len(cleaned_seq)} posizioni ({len(cleaned_seq) * 4} varianti computate)!"
+                        f"✅ Deep Mutational Scanning completed in **{elapsed:.2f} s** "
+                        f"across {len(cleaned_seq)} positions ({len(cleaned_seq) * 4} variants computed)!"
                     )
                 except Exception as e:
-                    st.error(f"Errore durante l'inferenza del modello: {str(e)}")
+                    st.error(f"Error during model inference: {str(e)}")
                     return
 
         if "results" in st.session_state and st.session_state["results"]["sequence"] == cleaned_seq:
@@ -914,16 +910,16 @@ def main():
             seq = res["sequence"]
 
             st.markdown("---")
-            st.markdown("### 2. Risultati Interattivi & Mappa di Saturazione Mutagenica")
+            st.markdown("### 2. Interactive Results & Deep Mutational Scanning Heatmap")
 
             tab_heat, tab_profile, tab_dist, tab_table, tab_export, tab_guide = st.tabs(
                 [
                     "📊 Saturation Heatmap",
                     "📈 Positional Vulnerability Profile",
                     "🔄 Substitution Matrix & Distribution",
-                    "📋 Tabella Varianti & Hotspot Filter",
+                    "📋 Variant Table & Hotspot Filter",
                     "📥 Data Export & Download",
-                    "📖 Guida Metodologica",
+                    "📖 Methodological Guide",
                 ]
             )
 
@@ -951,16 +947,16 @@ def main():
                     .head(3)
                 )
 
-                st.markdown("#### 🚨 Top 3 Loci Regolatori Iper-Sensibili:")
+                st.markdown("#### 🚨 Top 3 Hyper-Sensitive Regulatory Loci:")
                 cols_top = st.columns(3)
                 for idx, (pos, row) in enumerate(top_vulnerable.iterrows()):
                     with cols_top[idx]:
                         st.markdown(
                             f"""
                             <div class='metric-card' style='border-color: rgba(239, 68, 68, 0.4);'>
-                                <div class='metric-label' style='color:#EF4444;'>Posizione {pos} ({row['WT']})</div>
+                                <div class='metric-label' style='color:#EF4444;'>Position {pos} ({row['WT']})</div>
                                 <div class='metric-value'>{row['Max_Impact']:.3f}</div>
-                                <div class='metric-sub'>Picco di vulnerabilità ΔLLR</div>
+                                <div class='metric-sub'>Peak vulnerability ΔLLR</div>
                             </div>
                             """,
                             unsafe_allow_html=True,
@@ -979,7 +975,7 @@ def main():
                 col_f1, col_f2 = st.columns([0.4, 0.6])
                 with col_f1:
                     effect_filter = st.multiselect(
-                        "Filtra per Effetto Funzionale:",
+                        "Filter by Functional Effect:",
                         options=list(tidy_df["Effect"].unique()),
                         default=[
                             "Highly Disruptive / Deleterious",
@@ -988,8 +984,8 @@ def main():
                     )
                 with col_f2:
                     search_mut = st.text_input(
-                        "Cerca mutazione specifica (es. 'A10G' o posizione '15'):",
-                        placeholder="Cerca...",
+                        "Search specific mutation (e.g. 'A10G' or position '15'):",
+                        placeholder="Search...",
                     )
 
                 filtered_df = tidy_df.copy()
@@ -1012,7 +1008,7 @@ def main():
                 with col_ex1:
                     csv_wide = wide_df.to_csv()
                     st.download_button(
-                        label="📄 Scarica Matrice 2D Heatmap (Wide CSV)",
+                        label="📄 Download 2D Heatmap Matrix (Wide CSV)",
                         data=csv_wide,
                         file_name="evoscan_mutation_matrix_wide.csv",
                         mime="text/csv",
@@ -1021,7 +1017,7 @@ def main():
                 with col_ex2:
                     csv_tidy = tidy_df.to_csv(index=False)
                     st.download_button(
-                        label="📊 Scarica Dataset Tidy Completo (Long CSV)",
+                        label="📊 Download Full Tidy Dataset (Long CSV)",
                         data=csv_tidy,
                         file_name="evoscan_mutation_scores_long.csv",
                         mime="text/csv",
@@ -1031,18 +1027,18 @@ def main():
             with tab_guide:
                 st.markdown(
                     r"""
-                    ### 🧬 Metodologia e Fondamenti Teorici EvoScan
+                    ### 🧬 EvoScan Theoretical Foundations & Methodology
 
                     #### 1. In Silico Saturation Mutagenesis
-                    Il **Deep Mutational Scanning (DMS)** in vitro sintetizza e saggia funzionalmente tutte le possibili sostituzioni a singolo nucleotide. 
-                    `EvoScan` conduce questo processo *in silico* in modalità **zero-shot**, sfruttando le rappresentazioni biologiche apprese dai modelli fondazionali genomici.
+                    Experimental **Deep Mutational Scanning (DMS)** systematically synthesizes and functionally assays all possible single-nucleotide variants. 
+                    `EvoScan` performs this process *in silico* in **zero-shot** mode, leveraging biological representations learned by genomic foundation models.
 
-                    #### 2. Formulazione Matematica dei Punteggi di Mutazione ($\Delta\text{LLR}$)
+                    #### 2. Mathematical Formulation of Mutation Scores ($\Delta\text{LLR}$)
                     $$\Delta \text{LLR}(j, m) = \log P_\mathcal{M}(x_j = m \mid \mathbf{x}_{\setminus j}) - \log P_\mathcal{M}(x_j = x_j^{\text{WT}} \mid \mathbf{x}_{\setminus j})$$
-                    - **$m = x_j^{\text{WT}}$:** $\Delta \text{LLR} = 0.0$ (baseline neutra di riferimento).
-                    - **$\Delta \text{LLR} \ll 0$:** Variante fortemente sfavorita dalla distribuzione naturale (effetto deleterio / disruptivo).
-                    - **$\Delta \text{LLR} \approx 0$:** Variante neutra o tollerata evolutivamente.
-                    - **$\Delta \text{LLR} > 0$:** Variante arricchita o preferita nel contesto di sequenza locale.
+                    - **$m = x_j^{\text{WT}}$:** $\Delta \text{LLR} = 0.0$ (neutral baseline reference).
+                    - **$\Delta \text{LLR} \ll 0$:** Variant strongly disfavored by natural genomic distribution (deleterious / disruptive effect).
+                    - **$\Delta \text{LLR} \approx 0$:** Neutral or evolutionarily tolerated variant.
+                    - **$\Delta \text{LLR} > 0$:** Variant enriched or favored in local sequence context.
                     """
                 )
 

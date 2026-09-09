@@ -1,167 +1,115 @@
-# 🔬 Integrazione di AlphaGenome Atlas in EvoScan: Analisi di Fattibilità, Architettura e Valutazione Pro/Contro
+# 🔬 AlphaGenome Atlas Integration in EvoScan: Architectural Design, Feasibility, and Pros & Cons
 
-[![EvoScan](https://img.shields.io/badge/EvoScan-v1.0.0-blue?logo=dna&logoColor=white)](README.md)
+[![EvoScan](https://img.shields.io/badge/EvoScan-v1.2.0-blue?logo=dna&logoColor=white)](README.md)
 [![DeepMind AlphaGenome Atlas](https://img.shields.io/badge/Google%20DeepMind-AlphaGenome%20Atlas-4285F4?logo=google&logoColor=white)](https://deepmind.google.com/science/alphagenome/atlas)
-[![Status](https://img.shields.io/badge/Integration%20Design-Complete-success)](#)
+[![Status](https://img.shields.io/badge/Integration%20Design-Implemented-success)](#)
 
 ---
 
-## 1. Sintesi Esecutiva e Visione
+## 1. Executive Summary & Vision
 
-**EvoScan** è un visualizzatore avanzato per la mutagenesi a saturazione *in silico* (*Deep Mutational Scanning - DMS*), attualmente incentrato sull'estrazione di Log-Likelihood Ratio ($\Delta\text{LLR}$) tramite modelli linguistici genomici fondazionali basati su 6-meri (*Nucleotide Transformer 500M / v2*).
+**EvoScan** is an interactive visualizer and computational framework for *in silico* **Deep Mutational Scanning (DMS)**, originally built to extract Log-Likelihood Ratios ($\Delta\text{LLR}$) from 6-mer genomic foundation models (*Nucleotide Transformer 500M / v2*).
 
-Il rilascio di **Google DeepMind AlphaGenome Atlas** rappresenta un'opportunità di evoluzione fondamentale:
-- **Oggi EvoScan** calcola una misura unidimensionale di "accettabilità evolutiva / perplessità statistica della sequenza". Risponde alla domanda: *"Questa mutazione è insolita rispetto alla grammatica del DNA appresa dal Transformer?"*.
-- **Con AlphaGenome Atlas, EvoScan** può rispondere alla domanda biologica e clinica fondamentale: *"Perché questa mutazione è deleteria? Distrugge lo splicing? Sopprime l'espressione di un gene specifico? Chiude la cromatina? O distrugge il sito di legame per un fattore di trascrizione in un determinato tessuto?"*.
+The release of **Google DeepMind AlphaGenome Atlas** unlocks a major architectural leap:
+- **Previously, EvoScan** computed a univariate measure of "sequence evolutionary plausibility / model perplexity", answering the question: *"Is this candidate mutation atypical relative to the DNA grammar learned by the Transformer?"*.
+- **With AlphaGenome Atlas, EvoScan** can answer direct biological and mechanistic questions: *"Why is this variant disruptive? Does it break canonical splicing? Does it downregulate transcript abundance? Does it close local chromatin accessibility? Or does it ablate a critical transcription factor binding motif in a disease-relevant tissue?"*.
 
-L'integrazione di AlphaGenome Atlas in EvoScan è **tecnicamente fattibile, altamente sinergica e strategicamente raccomandata**, trasformando EvoScan da uno strumento di sola sequenza a una **piattaforma di visualizzazione multi-omica e clinico-funzionale**.
+Integrating AlphaGenome Atlas into EvoScan establishes a **Dual-Engine Platform**, bridging sequence-level likelihood modeling with **multi-modal, clinically calibrated variant effect prediction**.
 
 ---
 
-## 2. Matrice Comparativa: EvoScan Attuale vs. AlphaGenome Atlas
+## 2. Comparative Matrix: EvoScan Core vs. AlphaGenome Atlas
 
-| Caratteristica Architetturale | EvoScan (Stato Attuale) | AlphaGenome Atlas (DeepMind) | Sinergia di Integrazione |
+| Architectural Dimension | EvoScan (Baseline Local) | AlphaGenome Atlas (Google DeepMind) | Dual-Engine Synergy |
 |:---|:---|:---|:---|
-| **Input Primario** | Sequenza grezza di DNA (FASTA/Testo). | Coordinate genomiche umane (`chr:start-end`, gene, variante). | **Architettura Duale:** Sequenze de-novo su Nucleotide Transformer; loci umani su Atlas. |
-| **Finestra di Contesto** | Locale ($\sim 50\text{ bp} - 1.000\text{ bp}$ analizzati; contesto modello $\sim 1\text{ kb}-12\text{ kb}$). | **1 Megabase (1.048.576 bp)** con risoluzione a singolo nucleotide. | Superamento dei limiti di contesto locale e cattura di enhancer a centinaia di kb. |
-| **Tokenizzazione** | Chunk fissi **6-meri non sovrapposti** ($4^6 = 4096$ token). | **Tokenizzazione a singolo nucleotide** a risoluzione 1 bp. | Eliminazione degli artefatti ai confini dei 6-meri (*boundary artifacts*). |
-| **Punteggio Primario** | $\Delta\text{LLR}$ (Log-Likelihood Ratio univariato). | **AVI Phred Score (0 - 70)** calibrato sul genoma + 18 feature SHAP. | Benchmark standardizzato: identificazione immediata del Top 0.01% di varianti deleterie. |
-| **Specificità di Tessuto** | Nessuna (modello non condizionato da tessuti o linee cellulari). | **9.440 tracce sperimentali** (HepG2, K562, cuore, cervello, muscolo, ecc.). | Heatmap condizionate per tessuto d'interesse (es. fegato vs rene). |
-| **Specificità di Meccanismo** | Statistica pura di sequenza (perplessità del modello). | **18 modalità biologiche** (Splicing, TF, Istoniche, RNA-seq, CAGE, 3D Contacts). | Deconvoluzione causale della mutazione direttamente nell'interfaccia. |
-| **Risorse Computazionali** | Richiede GPU con 2-4 GB VRAM o CPU lenta con PyTorch. | **Invocazione gRPC ultra-rapida ($<2\text{ s}$ per 1 kb)**; zero VRAM locale. | Scalabilità istantanea su dispositivi client/browser e demo web senza GPU. |
-| **Supporto Sequenze Sintetiche** | **Completo** (plasmidi, promotori sintetici, batteri, piante). | **Limitato a GRCh38** per l'Atlas precomputato (richiede API completa per de-novo). | La coesistenza dei due motori preserva il caso d'uso sintetico. |
+| **Primary Input** | Raw DNA sequence (FASTA / plain text). | Human genomic coordinates (`chr:start-end`, gene, variant). | **Dual Architecture:** De-novo / synthetic sequences via Nucleotide Transformer; human loci via Atlas. |
+| **Context Window** | Local ($\sim 50\text{ bp} - 1,000\text{ bp}$ scanned; model context $\sim 1\text{ kb}-12\text{ kb}$). | **1 Megabase (1,048,576 bp)** at single-base resolution. | Overcomes narrow receptive fields, capturing distal enhancers up to hundreds of kilobases away. |
+| **Tokenization** | Fixed **non-overlapping 6-mers** ($4^6 = 4,096$ vocabulary tokens). | **Single-nucleotide tokenization** at 1-bp resolution. | Eliminates sub-token boundary artifacts. |
+| **Scoring Metric** | $\Delta\text{LLR}$ (univariate log-likelihood ratio). | **AVI Phred Score (0–70)** calibrated genome-wide + 18 SHAP modalities. | Standardized benchmark: immediately highlights top 1% and top 0.1% pathogenic tiers. |
+| **Tissue Specificity** | None (unconditioned sequence model). | **9,440 experimental tracks** across cell lines and tissues (HepG2, K562, brain, muscle, etc.). | Epigenomic and transcriptomic conditioning for disease-relevant biosamples. |
+| **Mechanistic Attribution**| Statistical sequence likelihood. | **18 biological modalities** (Splicing, TF binding, Histones, RNA-seq, CAGE, 3D Contacts). | Causal deconvolution of variant impact directly inside the user interface. |
+| **Computational Footprint**| Requires GPU (2–4 GB VRAM) or slower CPU with PyTorch. | **Ultra-fast gRPC (<2s for 1 kb)**; zero local GPU/VRAM needed. | Instant browser scalability on consumer laptops without specialized hardware. |
+| **Synthetic DNA Support** | **Full** (plasmids, synthetic promoters, bacteria, plants). | **Constrained to GRCh38** for the precomputed Atlas service. | Preserves synthetic biology workflows while unlocking human clinical genetics. |
 
 ---
 
-## 3. Schemi di Integrazione Proposti
+## 3. Integration Architecture & Workflow
 
-### 3.1. Architettura a Doppio Motore (Dual-Engine Pipeline)
+### 3.1. Dual-Engine Pipeline
 
 ```mermaid
 flowchart TD
-    UI["Utente EvoScan (Streamlit Frontend)"] --> Choice{"Tipo di Input Selezionato"}
+    UI["EvoScan User (Streamlit Frontend)"] --> Choice{"Selected Input Type"}
     
-    Choice -->|"Locus Genomico Umano / Gene\n(es. chr11:5225720-5226000 o 'HBB')"| AtlasEngine["EvoScan AlphaGenome Atlas Engine"]
-    Choice -->|"Sequenza DNA De-Novo / Sintetica\n(FASTA, Vettore, Non-Umano)"| LocalEngine["EvoScan Foundation Model Engine\n(Nucleotide Transformer 500M / Bio-Physics)"]
+    Choice -->|"Human Genomic Locus / Gene\n(e.g. chr11:5225720-5225780 or 'HBB')"| AtlasEngine["EvoScan AlphaGenome Atlas Engine"]
+    Choice -->|"De-Novo / Synthetic DNA Sequence\n(FASTA, Vector, Non-Human)"| LocalEngine["EvoScan Foundation Model Engine\n(Nucleotide Transformer 500M / Bio-Physics)"]
     
-    AtlasEngine -->|"gRPC Cloud Call\nclient.query_interval()"| AtlasService["Google DeepMind Atlas API\n(gdmscience.googleapis.com)"]
-    AtlasService -->|"Matrice Densa Precalcolata\n(1.5 secondi)"| AtlasData["Dataset Multi-Omico\n(AVI Phred + 18 Modalità SHAP)"]
+    AtlasEngine -->|"Cloud gRPC Call\nclient.query_interval()"| AtlasService["Google DeepMind Atlas API\n(gdmscience.googleapis.com)"]
+    AtlasService -->|"Precomputed Dense Matrix\n(< 2 seconds)"| AtlasData["Multi-Omic Dataset\n(AVI Phred + 18 SHAP Modalities)"]
     
-    LocalEngine -->|"In Silico MLM Forward Pass\n(PyTorch / Heuristic)"| LocalData["Matrice 4 x L ΔLLR"]
+    LocalEngine -->|"In Silico MLM Forward Pass\n(PyTorch / Heuristic)"| LocalData["4 x L ΔLLR Matrix"]
     
-    AtlasData --> Viz["Modulo di Visualizzazione Plotly Avanzato"]
+    AtlasData --> Viz["Plotly Visualization Engine"]
     LocalData --> Viz
     
-    Viz --> Heatmap["Heatmap 2D di Saturazione"]
-    Viz --> LayerToggle["Selettore Layer Funzionale\n(Splicing, TF, Espressione, Cromatina)"]
-    Viz --> DeepLinks["Pulsante Deep-Link: 'Esplora in DeepMind Atlas'"]
+    Viz --> Heatmap["2D Saturation Heatmap"]
+    Viz --> LayerToggle["Functional Modality Selector\n(Splicing, TF, Expression, Chromatin)"]
+    Viz --> DeepLinks["Deep-Link Button: 'Explore in DeepMind Atlas'"]
 ```
 
-### 3.2. Deconvoluzione Funzionale con Heatmap Multi-Layer
-Attualmente la heatmap di EvoScan mostra solo $\Delta\text{LLR}$. Con AlphaGenome Atlas, EvoScan può introdurre un selettore di livello funzionale:
-1. **Layer Globale:** Punteggio `AVI Phred` (impatto molecolare aggregato da 0 a 70).
-2. **Layer Splicing:** Disruzione donatori/accettori ed exon skipping (`MERGED_SPLICING`).
-3. **Layer Trascrizionale:** Variazione d'espressione quantitativa (`RNA_SEQ`).
-4. **Layer Accessibilità:** Variazione di cromatina aperta (`DNASE` / `ATAC`).
-5. **Layer Regolatorio:** Disruzione di motivi per fattori di trascrizione (`CHIP_TF`).
+### 3.2. Multi-Layer Functional Heatmaps
+While the classic heatmap presents $\Delta\text{LLR}$, the AlphaGenome engine introduces layer switching:
+1. **Global Composite Layer:** `AVI Phred` score (calibrated molecular impact from 0 to 70).
+2. **Splicing Layer:** Splice donor/acceptor disruption and exon skipping (`MERGED_SPLICING`).
+3. **Transcriptional Layer:** Quantitative steady-state expression shifts (`RNA_SEQ`).
+4. **Chromatin Layer:** Loss or gain of open chromatin (`DNASE` / `ATAC`).
+5. **Regulatory Layer:** Transcription factor binding motif disruption (`CHIP_TF`).
 
-### 3.3. Deep-Linking Automatico dall'Interactive Variant Table
-Ogni riga della tabella interattiva di EvoScan (es. mutazione `chr11:5225727:T>G` o hotspot del promotore) conterrà un link generato tramite `alphagenome_atlas_links.py`:
-- Cliccando sul link, l'utente viene reindirizzato istantaneamente alla pagina **AlphaGenome Atlas** con:
-  - Lo zoom centrato esattamente sulla variante.
-  - Le tracce sperimentali pertinenti (*RNA-seq*, *splicing sashimi arcs*, *DNase*).
-  - Il logo del motivo nucleotidico (CWM / Active-ISM) che mostra il fattore di trascrizione compromesso.
+### 3.3. One-Click Deep-Linking to DeepMind Atlas
+Every row in EvoScan's interactive variant table includes a dynamic deep-link:
+- Clicking **🔗 Explore in Atlas** takes the user directly to the official Google DeepMind AlphaGenome Atlas viewer centered on that variant with associated RNA-seq tracks, splicing sashimi arcs, and active-ISM motif logos.
 
 ---
 
-## 4. Valutazione Approfondita: Pro e Contro
+## 4. In-Depth Trade-Off Analysis: Pros & Cons
 
-### 4.1. VANTAGGI (PRO)
+### 4.1. ADVANTAGES (PROS)
 
-1. **Interpretabilità Biologica Rivoluzionaria:**
-   - La principale critica ai modelli come Nucleotide Transformer è che il $\Delta\text{LLR}$ è un indice "cieco": indica che una mutazione è anomala, ma non fornisce spiegazioni biologiche.
-   - AlphaGenome scompone l'effetto in 18 modalità biologiche tangibili, permettendo al ricercatore di capire se il danno è trascrizionale, post-trascrizionale, conformazionale o proteico.
-2. **Prestazioni Estreme a Zero Costo Computazionale Locale:**
-   - Eseguire una scansione di saturazione con Nucleotide Transformer su una sequenza di 1.000 bp richiede circa $3.000$ inferenze se fatta con per-token MLM o un forward pass computazionalmente oneroso in RAM.
-   - Con AlphaGenome Atlas, una finestra genomica di 1.000 bp viene recuperata tramite gRPC in **meno di 2 secondi**, eliminando il bisogno di schede video dedicate (NVIDIA CUDA) sul server EvoScan.
-3. **Eliminazione degli Artefatti da 6-Mero:**
-   - Nucleotide Transformer elabora stringhe di 6 nucleotidi senza overlap. Questo introduce artefatti al bordo di ciascun chunk. AlphaGenome opera a risoluzione di singola base, garantendo una superficie energetica perfettamente continua.
-4. **Specificità Cellulare e Tissutale:**
-   - Permette agli utenti di selezionare la linea cellulare d'interesse (es. K562 per varianti eritroidi, HepG2 per varianti epatiche, cellule neuronali per varianti cerebrali), rendendo EvoScan uno strumento personalizzabile per specifici contesti di malattia.
-5. **Score Calibrato Standard di Riferimento:**
-   - La scala AVI Phred ($0-70$) fornisce un valore assoluto immediatamente confrontabile tra geni e cromosomi diversi, superando la dipendenza del $\Delta\text{LLR}$ dal background di GC% locale.
-6. **Integrazione Bidirezionale con DeepMind:**
-   - Aggiungere deep-link verso l'Atlas valorizza EvoScan come portale analitico moderno e integrato nell'ecosistema Google DeepMind.
+1. **Unprecedented Biological Interpretability:**
+   - Traditional language model $\Delta\text{LLR}$ scores are "blind" to biological mechanisms: they flag variants as atypical without explaining why. AlphaGenome decomposes impact across 18 tangible biological modalities.
+2. **Extreme Performance with Zero Local Hardware Overhead:**
+   - Scoring 1,000 bp locally via iterative masked language modeling requires hundreds of forward passes. AlphaGenome queries dense precomputed predictions via gRPC in **under 2 seconds**, eliminating GPU requirements.
+3. **Elimination of 6-Mer Token Boundary Artifacts:**
+   - Nucleotide Transformer tokenizes sequences into non-overlapping 6-mers. AlphaGenome operates at single-base resolution, ensuring a continuous energy surface.
+4. **Tissue & Cell-Type Specificity:**
+   - Enables filtering by tissue or biosample (e.g. liver, brain, blood), tailoring variant analysis to specific clinical phenotypes.
+5. **Calibrated Reference Standard:**
+   - AVI Phred ($0–70$) provides an absolute, cross-comparable scale across genes, independent of local GC% bias.
+6. **Ecosystem Synergy:**
+   - Directly complements DeepMind's web tools, making EvoScan a lightweight interactive explorer for the broader scientific community.
 
 ---
 
-### 4.2. SVANTAGGI E SFIDE (CONTRO)
+### 4.2. CHALLENGES & MITIGATIONS (CONS)
 
-1. **Vincolo alle Coordinate del Genoma Umano (GRCh38):**
-   - AlphaGenome Atlas si basa su dati precomputati sul genoma umano di riferimento. Non supporta sequenze sintetiche arbitrarie, promotori artificiali ingegnerizzati o organismi modello non umani (es. *E. coli*, lievito, piante) senza invocare il modello completo di base (che ha costi computazionali e requisiti di chiamata differenti).
-   - *Soluzione:* Mantenere l'architettura a **Doppio Motore**: il motore attuale per sequenze arbitrarie, AlphaGenome Atlas per coordinate umane.
-2. **Dipendenza da Rete e API Key Esterna:**
-   - L'integrazione richiede che l'istanza di EvoScan (o l'utente finale) disponga di una chiave `ALPHAGENOME_API_KEY` valida e di connettività gRPC aperta verso i server Google (`gdmscience.googleapis.com:443`).
-   - Se l'API è irraggiungibile o la connessione è assente, l'Atlas engine non può operare.
-   - *Soluzione:* Fallback automatico ed esplicito sul motore euristico locale o su Nucleotide Transformer.
-3. **Termini di Utilizzo e Limitazioni di Licenza:**
-   - I dati di AlphaGenome Atlas sono destinati ad esclusivo uso di ricerca (*Research Use Only*). Non possono essere impiegati per erogare diagnosi mediche dirette o guidare terapie cliniche.
-   - Alcuni artefatti Tabix (splicing, feature importance complete) hanno licenze limitate all'uso non commerciale, mentre EvoScan ha licenza open-source permissiva (MIT).
-   - *Soluzione:* EvoScan deve esporre un disclaimer trasparente di ricerca (RUO) conformemente ai termini di Google DeepMind.
-4. **Complessità dell'Interfaccia Utente (UI Overload):**
-   - Presentare 18 tracce e decine di tessuti potrebbe compromettere la semplicità e la pulizia estetica di EvoScan.
-   - *Soluzione:* Adottare un design a **progressiva rivelazione**: mostrare prima lo score globale AVI Phred, e permettere l'espansione dei singoli layer solo su richiesta esplicita dell'utente.
-5. **Dimensione dei Dati per Uso Locale Offline (Bulk Storage):**
-   - Se un utente volesse installare il database Atlas completamente offline senza connessione internet, gli archivi Tabix pesano tra 88.5 GB e 390 GB, un ingombro incompatibile con installazioni leggere per computer portatili.
-   - *Soluzione:* Utilizzare l'accesso online gRPC come default e considerare i file Tabix locali solo per installazioni server ad alto throughput.
+1. **Constrained to Human Reference (GRCh38):**
+   - The precomputed Atlas is strictly parameterized for the human GRCh38 assembly. It cannot score arbitrary synthetic constructs or non-human model organisms.
+   - *Mitigation:* The **Dual-Engine architecture** preserves the local Nucleotide Transformer engine for all non-GRCh38 workflows.
+2. **Network & External API Key Dependency:**
+   - Querying the Atlas requires active internet connectivity and an `ALPHAGENOME_API_KEY`.
+   - *Mitigation:* Explicit, graceful UI warnings, personal API key inputs, and automatic fallback to local heuristic models.
+3. **Research Use Only (RUO) Licensing:**
+   - AlphaGenome data is strictly designated for research use and must not be used as the sole basis for clinical diagnosis.
+   - *Mitigation:* EvoScan displays prominent RUO disclaimers in accordance with Google DeepMind's terms of service.
+4. **UI Complexity:**
+   - Displaying 18 modalities could overwhelm the clean aesthetic.
+   - *Mitigation:* Progressive disclosure design—defaulting to global AVI Phred and expanding modalities upon user selection.
 
 ---
 
-## 5. Piano di Implementazione Pratico per EvoScan
+## 5. Conclusion
 
-Per integrare AlphaGenome Atlas in EvoScan senza stravolgere la base di codice esistente, si raccomanda una roadmap in 3 fasi:
-
-```mermaid
-timeline
-    title Tabella di Marcia per l'Integrazione
-    Fase 1 : Deep-Linking & Arricchimento Tabellare : Aggiunta di colonne Atlas nella tabella varianti : Integrazione skill alphagenome_atlas_website_links
-    Fase 2 : Nuovo Motore AlphaGenomeAtlasEngine : Creazione del wrapper gRPC in evoscan/model.py : Supporto input tramite coordinate (chr:start-end)
-    Fase 3 : Heatmap Multi-Modale & Selettore Layer : Visualizzazione Plotly con switch per Splicing, RNA-seq, TF : Lancio ufficiale di EvoScan v2.0
-```
-
-### Fase 1: Deep-Linking e Lancio Diretto nell'Atlas (Sforzo Basso, Alto Impatto)
-- Quando una sequenza proviene da un locus umano noto o quando l'utente specifica un gene/locus nelle opzioni, l'Interactive Variant Table di EvoScan calcola automaticamente l'URL dell'Atlas tramite `scripts/alphagenome_atlas_links.py`.
-- L'utente può cliccare su qualsiasi mutazione anomala per aprirla nell'Atlas con visualizzazione accoppiata di RNA-seq e giunzioni di splicing.
-
-### Fase 2: Implementazione di `AlphaGenomeAtlasEngine` in `evoscan/model.py`
-- Creazione di una nuova classe conforme all'interfaccia `EvoScanEngine`:
-```python
-class AlphaGenomeAtlasEngine:
-    """Motore di scansione densa basato sull'API gRPC di AlphaGenome Atlas."""
-    def __init__(self, api_key: Optional[str] = None):
-        from alphagenome.atlas import atlas
-        self.client = atlas.create(api_key or os.getenv("ALPHAGENOME_API_KEY"))
-
-    def score_interval(self, chrom: str, start: int, end: int, modality: str = "AVI_SCORE"):
-        # Interroga l'intervallo via gRPC e formatta la matrice (4 x L) per EvoScan
-        ...
-```
-- Aggiunta di `AlphaGenome Atlas (Cloud gRPC)` all'elenco dei modelli disponibili nel menu a tendina di Streamlit (`AVAILABLE_MODELS`).
-
-### Fase 3: Heatmap Multi-Layer e Visualizzatore Meccanicistico
-- Estensione di `evoscan/viz.py` per supportare il toggle tra:
-  - **AVI Phred Score (Globale)**
-  - **Splicing Disruption Score**
-  - **TF Binding Alteration Score**
-  - **Gene Expression Impact Score**
-
----
-
-## 6. Verdetto Finale
-
-L'integrazione di **AlphaGenome Atlas** in **EvoScan** è una combinazione perfetta:
-- Risolve il limite primario di EvoScan (la mancanza di interpretabilità biologica e tissutale del $\Delta\text{LLR}$).
-- Potenzia la velocità di elaborazione per i loci umani (da decine di secondi di calcolo GPU a 1.5 secondi via gRPC cloud).
-- Mantiene intatta la vocazione originale di EvoScan (la capacità di valutare qualunque sequenza sintetica offline tramite il motore locale esistente).
-
-Il risultato è uno strumento scientifico di classe mondiale, capace di unire il meglio della modellazione generativa open-source locale e dei più potenti foundation models genomici di Google DeepMind.
+Integrating **AlphaGenome Atlas** into **EvoScan** creates a best-of-both-worlds scientific tool:
+- Solves the interpretability bottleneck of generic genomic language models.
+- Delivers sub-second saturation mutagenesis for human disease loci without requiring local GPUs.
+- Retains complete offline and synthetic DNA versatility through local foundation models.
